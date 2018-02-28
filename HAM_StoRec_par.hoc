@@ -1,0 +1,890 @@
+// CA1 heteroassociative memory network: Storage and recall
+// CA1 PCs, BCs, AACs, BSCs and OLMs (using moderate cell models)
+// EC, CA3 (excitatory) and Septal (inhibitory) inputs
+// Cycle is: Recall-Storage-Recall etc
+// Parallel code adapted from Hines' ran3par.hoc
+// VCU & BPG 8-1-09
+
+// Results reported in V. Cutsuridis, S. Cobb and B.P. Graham,
+// "Encoding and retrieval in a model of the hippocampal CA1 microcircuit",
+// Hippocampus, in press, DOI 10.1002/hipo.20661, 2009.
+
+
+{load_file("nrngui.hoc")}  // load the GUI and standard run libraries
+
+
+{load_file("pyramidal_cell_14Vb.hoc")}
+{load_file("basket_cell17S.hoc")}
+{load_file("axoaxonic_cell17S.hoc")}
+{load_file("bistratified_cell13S.hoc")}
+{load_file("olm_cell2.hoc")}
+{load_file("stim_cell.hoc")}
+{load_file("burst_cell.hoc")}
+
+{load_file("ranstream.hoc")}  // to give each cell its own sequence generator
+
+objref pc
+pc = new ParallelContext()
+
+
+STARTDEL = 50	// msecs
+THETA = 250	// msecs (4 Hz)
+GAMMA = 25	// msecs (40 Hz)
+ECCA3DEL = 9	// msecs
+
+SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
+
+
+//////////////////////////////////
+// Step 1: Define the cell classes
+//////////////////////////////////
+
+npcell = 100	
+nbcell = 2	
+naacell = 1		
+nbscell = 1	
+nolm = 	1
+nCA3 = 100
+nEC = 20
+nSEP = 10
+
+ncell = npcell+nbcell+naacell+nbscell+nolm	// total number of cells
+nstim = nCA3+nEC+nSEP		// total number of inputs
+ntot = ncell+nstim
+
+// gid ordering: 
+//	PCs:0..npcell-1
+//	BCs:npcell..npcell+nbcell-1
+//	etc
+// indices of first cell of each type in list "cells"
+iPC = 0
+iBC = npcell
+iAAC = npcell+nbcell
+iBSC = npcell+nbcell+naacell
+iOLM = npcell+nbcell+naacell+nbscell
+iCA3 = npcell+nbcell+naacell+nbscell+nolm
+iEC = npcell+nbcell+naacell+nbscell+nolm+nCA3
+iSEP = npcell+nbcell+naacell+nbscell+nolm+nCA3+nEC
+
+
+//////////////////////////////////////////////////////////////
+// Steps 2 and 3 are to create the cells and connect the cells
+//////////////////////////////////////////////////////////////
+
+C_P = 1  // probability of excitatory connections received by each CA1 PC
+         // from CA3 inputs (1 gives full connectivity)
+         
+SPATT = 20	// number of active cells per pattern
+NPATT = 5	// number of stored patterns
+NSTORE = 5	// number of new patterns to store
+
+CPATT = 1	// index of cue pattern
+CFRAC = 1	// fraction of active cells in cue
+iPPC=1		// index of a pattern PC (1st patt in 5 patterns)
+iNPPC=0		// index of a non-pattern PC (1st patt in 5 patterns)
+
+strdef FCONN, FPATT, FSTORE	// file name of connection weights and patterns
+// (cue and EC patterns taken from FSTORE file to implement storage)
+// (use same file for FPATT and FSTORE to test recall only)
+FCONN = "Weights/wgtsN100S20P5.dat"
+FPATT = "Weights/pattsN100S20P5.dat"	// already stored patterns
+FSTORE = "Weights/pattsN100S20P5.dat"	// new patterns to store
+
+// Simple connectivity
+CA3_PC = nCA3  // # of connections received by each PC from CA3 cells (excit)
+CA3_BC = nCA3  // # of connections received by each BC from CA3 cells (excit)
+CA3_AAC = nCA3  // # of connections received by each BC from CA3 cells (excit)
+CA3_BSC = nCA3  // # of connections received by each BC from CA3 cells (excit)
+EC_PC = nEC  // # of connections received by each PC from EC cells (excit)
+EC_BC = nEC  // # of connections received by each BC from EC cells (excit)
+EC_AAC = nEC  // # of connections received by each AAC from EC cells (excit)
+
+SEP_BC = nSEP  // # of connections received by each basket cell from septum (inhib)
+SEP_AAC = nSEP  // # of connections received by each AAC cell from septum (inhib)
+SEP_BSC = nSEP  // # of connections received by each BSC cell from septum (inhib)
+SEP_OLM = nSEP  // # of connections received by each OLM cell from septum (inhib)
+
+PC_PC = 1  // # of connections received by each PC from other PCs (excit)
+PC_BC = npcell  // # of connections received by each basket cell from PCs (excit)
+PC_BSC = npcell  // # of connections received by each bistratified cell from PCs (excit)
+PC_AAC = npcell  // # of connections received by each bistratified cell from PCs (excit)
+PC_OLM = npcell  // # of connections received by each OLM cell from PCs (excit)
+
+BC_PC = 2  // # of connections received by each PC from basket cells (inhib)
+BC_BSC = 2  // # of connections received by each BSC from basket cells (inhib)
+BC_OLM = 2  // # of connections received by each OLM from basket cells (inhib)
+BC_BC = 1  // # of connections received by each BC from other BCs (inhib)
+AAC_PC = 1  // # of connections received by each PC from axoaxonic cells (inhib)
+BSC_PC = 1  // # of connections received by each PC from bistratified cells (inhib)
+BSC_BC = 1  // # of connections received by each BC from bistratified cells (inhib)
+OLM_PC = 1  // # of connections received by each PC from OLM cells (inhib)
+OLM_BC = 1  // # of connections received by each basket cell from OLM cells (inhib)
+
+Pcell2Pcell_weight = 0.001
+Pcell2Pcell_delay = 1
+
+Bcell2Pcell_weight = 0.02
+Bcell2Pcell_delay = 1
+Pcell2Bcell_weight = 0.0005 
+Pcell2Bcell_delay = 1
+Bcell2Bcell_weight = 0.001
+Bcell2Bcell_delay = 1
+Bcell2BScell_weight = 0.02
+Bcell2BScell_delay = 1
+Bcell2OLMcell_weight = 0.0
+Bcell2OLMcell_delay = 1
+
+AAcell2Pcell_weight = 0.04
+AAcell2Pcell_delay = 1
+Pcell2AAcell_weight = 0.0005
+Pcell2AAcell_delay = 1
+
+BScell2Pcell_weight = 0.002	
+BScell2Pcell_delay = 1
+BScell2Pcell_GABAB_weight = 0.0004
+BScell2Pcell_delay = 1
+Pcell2BScell_weight = 0.0005
+Pcell2BScell_delay = 1
+BScell2Bcell_weight = 0.01
+BScell2Bcell_delay = 1
+
+OLMcell2Pcell_weight = 0.04
+OLMcell2Pcell_GABAB_weight = 0.0004
+OLMcell2Pcell_delay = 1
+OLMcell2Bcell_weight = 0.01
+OLMcell2Bcell_delay = 1
+Pcell2OLMcell_weight = 0.00005
+Pcell2OLMcell_delay = 1
+OLMcell2Bcell_weight = 0.0
+OLMcell2Bcell_delay = 1
+
+// Synapse indices
+// onto CA1 PCs
+E_EC = 0	// EC AMPA excit to medium SLM (2 of)
+E_CA3 = 2	// CA3 AMPA excit to medium SR
+EN_CA3 = 3	// CA3 NMDA excit to medium SR
+EM_CA3 = 23	// CA3 modifiable (STDP) AMPA excit to medium SR
+E_PC = 4	// CA1 recurrent AMPA excit to proximal SR
+I_BC = 5	// ff&fb inhib via BCs to soma
+I_AAC = 6	// ff&fb inhib via AACs to axon initial segment
+I_BSC = 11	// ff&fb inhib via BSCs to SR med (12 of: 6 GABAA, 6 GABAB)
+I_OLM = 7	// fb inhib via OLMs to SLM (4 of: 2 GABAA, 2 GABAB)
+
+// onto INs (BC, AAC, BSC)
+EI_EC = 0	// EC AMPA excit (2 of; not onto BSC)
+EI_CA3 = 2	// CA3 AMPA excit (4 of)
+EI_PC = 6	// CA1 PC AMPA excit (2 of)
+II_SAME = 8	// inhib from neighbouring INs (BC->BC; BSC->BSC)
+II_OPP = 9	// inhib from other INs (BSC->BC; BC->BSC)
+II_SEP = 10	// inhib from septum (4 of: 2 GABAA, 2 GABAB)
+
+// onto INs (OLM)
+EO_PC = 0	// CA1 PC AMPA excit (2 of)
+IO_IN = 2	// inhib from INs and septum (2 of: 1 GABAA, 1 GABAB)
+
+// Septal inhibition
+SEPNUM = 1000	// number of SEP spikes
+SEPSTART = STARTDEL+(THETA/12)	// time of first SEP spike
+SEPINT = 20	// SEP spike ISI (during burst)
+SEPNOISE = 0.4	// SEP ISI noise
+SEPBINT = 2*THETA/3	// SEP interburst interval
+SEPBLEN = THETA/3	// SEP burst length
+SEPWGT = 0.02	// SEP weight to BCs and AACs
+SEPWGTL = 0.0002	// SEP weight to BSCs and OLMs
+SEPDEL = 1	// SEP delay
+
+// Background excitation (not used)
+ENUM = 0	// number of spikes
+ESTART = 0	// time of first spike
+EINT = 200	// spike ISI
+ENOISE = 1	// ISI noise
+EWGT = 0.001	// excitatory weights (AMPA)
+ENWGT = 0.002	// excitatory weights (NMDA)
+EDEL = 1	// delay (msecs)
+
+// EC excitation
+ECPATT = 1	// index of output pattern
+ECNUM = 1000	// number of EC spikes
+ECSTART = STARTDEL	// time of first EC spike
+ECINT = GAMMA	// EC spike ISI
+ECNOISE = 0.2	// EC ISI noise
+ECWGT = 0.0	// EC weight to PCs
+//ECWGT = 0.001	// EC weight to PCs
+ECDEL = 1	// EC delay
+EIWGT = 0.00015	// excitatory weights to INs
+EIDEL = 1	// delay (msecs)
+
+// Cue (CA3) excitation
+CNUM = 1000	// number of cue spikes
+CSTART = STARTDEL+ECCA3DEL	// time of first cue spike
+CINT = GAMMA	// cue spike ISI
+CNOISE = 0.2	// cue ISI noise
+CHWGT = 0.0015	// cue weight
+CLWGT = 0.0005	// unlearnt weight (usually 0)
+CNWGT = 0.0005	// excitatory weights (NMDA)
+CDEL = 1	// cue delay
+
+// STDP configuration
+STDPDFAC = 0	// depression factor
+STDPPFAC = 0	// potentiation factor
+//STDPDFAC = 0.2	// depression factor
+//STDPPFAC = 1.0	// potentiation factor
+AMPASUPP = 0.4	// fraction of AMPA during storage
+STDPTHRESH = -55	// voltage threshold for STDP
+STDPSTART = STARTDEL+(THETA/2)	// STDP starts at same time as EC input
+STDPINT = THETA/2	// STDP interburst (recall) interval
+STDPLEN = THETA/2	// STDP burst (storage) length
+
+
+connect_random_low_start_ = 1  // low seed for mcell_ran4_init()
+
+objref cells, nclist, ncslist, ncelist  // cells will be a List that holds 
+  // all instances of network cells that exist on this host
+  // nclist will hold all NetCon instances that exist on this host
+  // and connect network spike sources to targets on this host (nclist)
+  // ncslist holds NetConns from input spike sources (NetStims)
+objref ranlist  // for RandomStreams on this host
+objref stims, stimlist, cuelist, EClist	// phasic and tonic cell stimulation
+
+objref gidvec  // to associate gid and position in cells List
+  // useful for setting up connections and reporting connectivity
+
+
+// Make the network
+proc mknet() {
+
+  print "Make cells..."
+  mkcells()  // create the cells
+  
+  print "Make inputs..."
+  mkinputs()  // create the CA3, EC and septal inputs
+    
+  print "Connect cells..."
+  
+  mcell_ran4_init(connect_random_low_start_)
+  nclist = new List()
+  
+  //print "   EC..."
+  // EC to BC
+  connectcells(nbcell, iBC, nEC, iEC, EC_BC, EI_EC, EI_EC+1, EIDEL, EIWGT)
+  // EC to AAC
+  connectcells(naacell, iAAC, nEC, iEC, EC_AAC, EI_EC, EI_EC+1, EIDEL, EIWGT)
+
+  //print "   CA3..."
+  // CA3 to BC
+  connectcells(nbcell, iBC, nCA3, iCA3, CA3_BC, EI_CA3, EI_CA3+3, EIDEL, EIWGT)
+  // CA3 to AAC
+  connectcells(naacell, iAAC, nCA3, iCA3, CA3_AAC, EI_CA3, EI_CA3+3, EIDEL, EIWGT)
+  // CA3 to BSC
+  connectcells(nbscell, iBSC, nCA3, iCA3, CA3_BSC, EI_CA3, EI_CA3+3, EIDEL, EIWGT)
+
+  //print "   septum..."
+  // SEP to BC
+  connectcells(nbcell, iBC, nSEP, iSEP, SEP_BC, II_SEP, II_SEP+1, SEPDEL, SEPWGT)
+  // SEP to AAC
+  connectcells(naacell, iAAC, nSEP, iSEP, SEP_AAC, II_SEP, II_SEP+1, SEPDEL, SEPWGT)
+  // SEP to BSC
+  connectcells(nbcell, iBC, nSEP, iSEP, SEP_BSC, II_SEP, II_SEP+1, SEPDEL, SEPWGTL)
+  // SEP to OLM
+  connectcells(naacell, iAAC, nSEP, iSEP, SEP_OLM, IO_IN, IO_IN, SEPDEL, SEPWGTL)
+
+  //print "   PC..."
+  // PC to PC
+  connectcells(npcell, iPC, npcell, iPC, PC_PC, E_PC, E_PC, Pcell2Pcell_delay, Pcell2Pcell_weight)
+  // PC to BC
+  connectcells(nbcell, iBC, npcell, iPC, PC_BC, EI_PC, EI_PC+1, Pcell2Bcell_delay, Pcell2Bcell_weight)
+  // PC to AAC
+  connectcells(naacell, iAAC, npcell, iPC, PC_AAC, EI_PC, EI_PC+1, Pcell2AAcell_delay, Pcell2AAcell_weight)
+  // PC to BSC
+  connectcells(nbscell, iBSC, npcell, iPC, PC_BSC, EI_PC, EI_PC+1, Pcell2BScell_delay, Pcell2BScell_weight)
+  // PC to OLM
+  connectcells(nolm, iOLM, npcell, iPC, PC_OLM, EO_PC, EO_PC+1, Pcell2OLMcell_delay, Pcell2OLMcell_weight)
+
+  //print "   INs..."
+  // BC to PC
+  connectcells(npcell, iPC, nbcell, iBC, BC_PC, I_BC, I_BC, Bcell2Pcell_delay, Bcell2Pcell_weight)
+  // BC to BC
+  connectcells(nbcell, iBC, nbcell, iBC, BC_BC, II_SAME, II_SAME, Bcell2Bcell_delay, Bcell2Bcell_weight)
+  // BC to BSC
+  connectcells(nbscell, iBSC, nbcell, iBC, BC_BSC, II_OPP, II_OPP, Bcell2BScell_delay, Bcell2BScell_weight)
+  // BC to OLM
+  //connectcells(nolm, iOLM, nbcell, iBC, BC_OLM, IO_IN, IO_IN, Bcell2OLMcell_delay, Bcell2OLMcell_weight)
+  // AAC to PC
+  connectcells(npcell, iPC, naacell, iAAC, AAC_PC, I_AAC, I_AAC, AAcell2Pcell_delay, AAcell2Pcell_weight)
+  // BSC to PC
+  connectcells(npcell, iPC, nbscell, iBSC, BSC_PC, I_BSC, I_BSC+5, BScell2Pcell_delay, BScell2Pcell_weight)
+  connectcells(npcell, iPC, nbscell, iBSC, BSC_PC, I_BSC+6, I_BSC+11, BScell2Pcell_delay, BScell2Pcell_GABAB_weight)
+  // BSC to BSC
+  //connectcells(nbscell, iBSC, nbscell, iBSC, BSC_BSC, II_SAME, II_SAME, BScell2BScell_delay, BScell2BScell_weight)
+  // BSC to BC
+  connectcells(nbcell, iBC, nbscell, iBSC, BSC_PC, II_OPP, II_OPP, BScell2Bcell_delay, BScell2Bcell_weight)
+  // OLM to PC
+  connectcells(npcell, iPC, nolm, iOLM, OLM_PC, I_OLM, I_OLM+1, OLMcell2Pcell_delay, OLMcell2Pcell_weight)
+  connectcells(npcell, iPC, nolm, iOLM, OLM_PC, I_OLM+2, I_OLM+3, OLMcell2Pcell_delay, OLMcell2Pcell_GABAB_weight)
+  // OLM to BC
+  //connectcells(nbcell, iBC, nolm, iOLM, OLM_BC, II_OPP, II_OPP, OLMcell2Bcell_delay, OLMcell2Bcell_weight)
+
+  //print "Connect inputs..."
+  // EC input to PCs
+  connectEC(FPATT, ECPATT, NPATT, E_EC, 2)	// restore existing pattern
+  //connectEC(FSTORE, ECPATT, NSTORE, E_EC, 2)	// store new pattern
+  // CA3 input to PCs
+  //connectCA3($s1, $2, E_CA3, EN_CA3)	// with fixed synapses
+  connectCA3($s1, $2, EM_CA3, EN_CA3)	// with modifiable synapses
+  
+}
+
+
+// creates the cells and appends them to a List called cells
+// argument is the number of cells to be created
+proc mkcells() {local i,j  localobj cell, nc, nil
+  cells = new List()
+  ranlist = new List()
+  gidvec = new Vector()
+  // each host gets every nhost'th cell,
+  // starting from the id of the host
+  // and continuing until no more cells are left
+  for (i=pc.id; i < ntot; i += pc.nhost) {
+    if (i < iBC) {
+      cell = new PyramidalCell()
+    } else if (i < iAAC) {
+      cell = new BasketCell()	// BC
+    } else if (i < iBSC) {
+      cell = new AACell()	// AAC
+    } else if (i < iOLM) {
+      cell = new BistratifiedCell()	// BSC
+    } else if (i < iCA3) {
+      cell = new OLMCell()	// OLM
+    } else if (i < iEC) {
+      cell = new StimCell()	// CA3 input
+    } else if (i < iSEP) {
+      cell = new StimCell()	// EC input
+    } else {
+      cell = new BurstCell()	// Septal input
+    }
+    cells.append(cell)
+    pc.set_gid2node(i, pc.id)  // associate gid i with this host
+    nc = cell.connect2target(nil)  // attach spike detector to cell
+    pc.cell(i, nc)  // associate gid i with spike detector
+    ranlist.append(new RandomStream(i))  // ranlist.o(i) corresponds to
+    gidvec.append(i)
+  }
+}
+
+
+// reports distribution of cells across hosts
+proc report_gidvecs() { local i, rank
+  pc.barrier()  // wait for all hosts to get to this point
+  if (pc.id==0) printf("\ngidvecs on the various hosts\n")
+  for rank=0, pc.nhost-1 {  // host 0 first, then 1, 2, etc.
+    if (rank==pc.id) {
+      print "host ", pc.id
+      gidvec.printf()
+    }
+    pc.barrier()  // wait for all hosts to get to this point
+  }
+}
+
+
+// sets the CA3, EC and Septal background inputs
+proc mkinputs() {local i localobj stim, rs
+  for i=0, cells.count-1 {
+    gid = gidvec.x[i]	// id of cell
+    if (gid >= iCA3 && gid < ntot-nSEP-nEC) {	// appropriate target cell
+    // set background activity for excitatory inputs
+    stim = cells.object(i).stim
+    stim.number = ENUM
+    stim.start = ESTART
+    stim.interval = EINT
+    stim.noise = ENOISE
+    }
+    if (gid >= iEC && gid < ntot-nSEP) {	// appropriate target cell
+    // set background activity for excitatory inputs
+    stim = cells.object(i).stim
+    stim.number = ENUM
+    stim.start = ESTART
+    stim.interval = EINT
+    stim.noise = ENOISE
+    }
+    if (gid >= iSEP && gid < ntot) {	// appropriate target cell
+    // set background activity for septum
+    stim = cells.object(i).stim
+    rs = ranlist.object(i)
+    stim.number = SEPNUM
+    stim.start = SEPSTART
+    stim.interval = SEPINT
+    stim.noise = SEPNOISE
+    stim.burstint = SEPBINT
+    stim.burstlen = SEPBLEN
+    // Use the gid-specific random generator so random streams are
+    // independent of where and how many stims there are.
+    stim.noiseFromRandom(rs.r)
+    rs.r.negexp(1)
+    rs.start()
+    }
+  }
+}
+
+
+// Target cells receive "convergence" number of inputs from
+// the pool of source cells (only one input per source cell at most)
+// ("convergence" not reached if no. of sources < convergence)
+// connectcells(number of targets, first target cell, 
+//		number of source cells, first source cell, 
+//		convergence, first synapse,
+//		last synapse, connection delay, weight)
+// appends the NetCons to a List called nclist
+proc connectcells() {local i, j, gid, nsyn, r  localobj syn, nc, rs, u
+  // initialize the pseudorandom number generator
+  u = new Vector($3)  // for sampling without replacement
+  for i=0, cells.count-1 {	// loop over possible target cells
+    gid = gidvec.x[i]	// id of cell
+    if (gid >= $2 && gid < $1+$2) {	// appropriate target cell
+      rs = ranlist.object(i)  // RandomStream for cells.object(i)
+      rs.start()
+      rs.r.discunif($4, $4+$3-1)  // return source cell index
+      u.fill(0)  // u.x[i]==1 means spike source i has already been chosen
+      nsyn = 0
+      while (nsyn < $5 && nsyn < $3) {
+        r = rs.repick()
+        // no self-connection and only one connection from any source
+        if (r != gidvec.x[i]) if (u.x[r-$4] == 0) {
+          // target synapses
+          for j = $6, $7 {
+            // set up connection from source to target
+            syn = cells.object(i).pre_list.object(j)
+            nc = pc.gid_connect(r, syn)
+            nclist.append(nc)
+            nc.delay = $8
+            nc.weight = $9
+          }
+          u.x[r-$4] = 1
+          nsyn += 1
+        }
+      }
+    }
+  }
+}
+
+
+// connects the EC input layer to PC cells
+// read active PCs from pattern file
+// all-to-all connectivity between EC and PC pattern cells
+// appends the PC NetCons to a List called ncslist
+proc connectEC() {local i, gid, ncue  localobj cue, cstim, syn, src, nc, fp, target
+  ncelist = new List()
+  // open patterns file
+  fp = new File($s1)
+  fp.ropen()
+  cue = new Vector(npcell)
+  cue.scanf(fp, $2, $3)	// read pattern
+  fp.close()
+  ncue = 0
+  // find active cells in pattern
+  for i=0, cue.size()-1 {
+    if (!pc.gid_exists(i+iPC)) { continue }
+    if (cue.x[i] == 1) {
+      // print "Pattern cell ", i
+      target = pc.gid2cell(i+iPC)
+      // target synapses
+      for k = $4, $4+$5-1 {
+        syn = target.pre_list.object(k)	// excitatory synapse
+        // create pattern stimulus
+        for j=0, nEC-1 {
+          // set up connection from source to target
+          nc = pc.gid_connect(j+iEC, syn)
+          ncelist.append(nc)
+          nc.delay = ECDEL
+          nc.weight = ECWGT
+        }
+      }
+    }
+  }
+}
+
+
+// connects the CA3 input layer to output cells (PCs and INs)
+// read PC connections from a file, with connections to
+// a target being a column with index i for target cell i
+// appends the PC NetCons to a List called ncslist
+proc connectCA3() {local i, j, cp, gid  localobj src, syn, synN, nc, fc, rs, conns, rc
+  cp = $2	// connection probability
+  mcell_ran4_init(connect_random_low_start_)
+  conns = new Vector(nCA3)  // connection weights
+  rc = new Vector(nCA3)  // random physical connectivity
+  ncslist = new List()
+  //ncilist = new List()
+  
+  // inputs to PCs determined by weight matrix
+  for i=0, cells.count-1 {	// loop over possible target cells
+    gid = gidvec.x[i]	// id of cell
+    if (gid >= iPC && gid < npcell+iPC) {	// appropriate target cell
+    print "cell ", gid
+    syn = cells.object(i).pre_list.object($3)	// AMPA synapse with STDP
+    syn.wmax = CHWGT
+    syn.wmin = CLWGT
+    syn.d = STDPDFAC	// depression
+    syn.p = STDPPFAC	// potentiation
+    syn.gscale = AMPASUPP	// fraction of AMPA during storage
+    syn.thresh = STDPTHRESH	// threshold for postsynaptic voltage detection
+    syn.gbdel = STDPSTART
+    syn.gbint = STDPINT
+    syn.gblen = STDPLEN
+    synN = cells.object(i).pre_list.object($4)	// NMDA synapse
+    rs = ranlist.object(i)  // the corresponding RandomStream
+    rs.start()
+    rs.r.uniform(0, 1)  // return integer in range 0..1
+    rc.setrand(rs.r)	// generate random connectivity
+    // open connections file
+    fc = new File($s1)
+    fc.ropen()
+    conns.scanf(fc, gid+1, nCA3)	// read incoming weights for cell gid
+    fc.close()
+    for j=0, nCA3-1 {
+      // only connection if physical connection exists
+      if (rc.x[j] <= cp) {
+        //print "   src ", j
+        // set up connection from source to target NMDA synapse
+        nc = pc.gid_connect(j+iCA3, synN)
+        ncslist.append(nc)
+        nc.delay = CDEL
+        nc.weight = CNWGT	// NMDA weight same for all connections
+        // high AMPA if weight is 1
+        if (conns.x[j] == 1) {
+          // set up connection from source to target
+          nc = pc.gid_connect(j+iCA3, syn)
+          ncslist.append(nc)
+          nc.delay = CDEL
+          nc.weight = CHWGT
+        } else {
+          // set up connection from source to target
+          nc = pc.gid_connect(j+iCA3, syn)
+          ncslist.append(nc)
+          nc.delay = CDEL
+          nc.weight = CLWGT	// unlearned weight
+        }
+      }
+    }
+    }
+  }
+}
+
+
+mknet(FCONN, C_P)  // go ahead and create the net!
+
+
+
+//////////////////////////////////////////////////
+// Instrumentation, i.e. stimulation and recording
+//////////////////////////////////////////////////
+
+// setup activity in EC stims
+proc mkEC() {local i, necs localobj cstim, rs
+  EClist = new Vector()
+  necs = 0
+  for i=0, cells.count-1 {
+    gid = gidvec.x[i]	// id of cell
+    if (gid >= iEC && gid < iEC+nEC) {	// appropriate target cell
+        // create cue stimulus
+        cstim = cells.object(i).stim
+    	rs = ranlist.object(i)
+        cstim.number = ECNUM
+        cstim.start = ECSTART
+        cstim.interval = ECINT
+        cstim.noise = ECNOISE
+        // Use the gid-specific random generator so random streams are
+        // independent of where and how many stims there are.
+        cstim.noiseFromRandom(rs.r)
+        rs.r.normal(0, 1)
+        rs.start()
+        EClist.append(i)
+        necs += 1
+    }
+  }
+}
+
+
+objref cue, fp
+
+// setup activity pattern in input cue stims
+proc mkcue() {local i, j, ncue localobj cstim, target, rs
+  cuelist = new Vector()
+  // open patterns file
+  fp = new File($s1)
+  fp.ropen()
+  cue = new Vector(nCA3)
+  cue.scanf(fp, $2, $4)	// read pattern
+//  cue.printf()
+  fp.close()
+  ncue = 0
+  // find active cells in pattern
+  for i=0, cue.size()-1 {
+    if (!pc.gid_exists(i+iCA3)) { continue }
+    if (ncue <= SPATT*$3) { 	// fraction of active cells in cue
+      if (cue.x[i] == 1) {
+        print "Cue cell ", i
+        cstim = pc.gid2cell(i+iCA3)
+        for j=0, cells.count-1 {
+          if (gidvec.x[j] == i+iCA3) {break}	// find cell index
+        }
+    	rs = ranlist.object(j)
+        // create cue stimulus
+        //cstim = target.stim
+        cstim.number = CNUM
+        cstim.start = CSTART
+        cstim.interval = CINT
+        cstim.noise = CNOISE
+        // Use the gid-specific random generator so random streams are
+        // independent of where and how many stims there are.
+        cstim.noiseFromRandom(rs.r)
+        rs.r.normal(0, 1)
+        rs.start()
+        cuelist.append(i)
+        ncue += 1
+      }
+    }
+  }
+//  print "cue size ", ncue
+}
+
+// remove activity pattern in input cue stims
+proc erasecue() {local i, j localobj cstim
+  for i=0, cue.size()-1 {
+    if (!pc.gid_exists(i+iCA3)) { continue }
+    cstim = pc.gid2cell(i+iCA3)
+    cstim.number = 0
+  }
+}
+
+
+mkcue(FPATT, CPATT, CFRAC, NPATT)	// cue from already stored pattern
+//mkcue(FSTORE, CPATT, CFRAC, NSTORE)	// cue from new pattern
+mkEC()
+
+
+
+// Spike recording
+objref tvec, idvec  // will be Vectors that record all spike times (tvec)
+        // and the corresponding id numbers of the cells that spiked (idvec)
+proc spikerecord() {local i  localobj nc, nil
+  tvec = new Vector()
+  idvec = new Vector()
+  for i=0, cells.count-1 {
+    nc = cells.object(i).connect2target(nil)
+    nc.record(tvec, idvec, nc.srcgid)
+    // the Vector will continue to record spike times
+    // even after the NetCon has been destroyed
+  }
+}
+
+spikerecord()
+
+
+// Record cell voltage traces
+objref pvsoma, pvsr, pvslm  // Vectors that record voltages from pattern PC
+objref npvsoma, npvsr, npvslm  // Vectors that record voltages from non-pattern PC
+objref vBC, vAAC, vBSC, vOLM  // Vectors that record voltages from INs
+
+proc vrecord() {local i, gid 
+  for i=0, cells.count-1 {	// loop over possible target cells
+    gid = gidvec.x[i]	// id of cell
+    if (gid==iPPC) {
+      pvsoma = new Vector()
+      pvsr = new Vector()
+      pvslm = new Vector()
+      pvsoma.record(&cells.object(i).soma.v(0.5))
+      pvsr.record(&cells.object(i).radTmed.v(0.5))
+      pvslm.record(&cells.object(i).lm_thick1.v(0.5))
+    }
+    if (gid==iNPPC) {
+      npvsoma = new Vector()
+      npvsr = new Vector()
+      npvslm = new Vector()
+      npvsoma.record(&cells.object(i).soma.v(0.5))
+      npvsr.record(&cells.object(i).radTmed.v(0.5))
+      npvslm.record(&cells.object(i).lm_thick1.v(0.5))
+    }
+    if (gid==iBC) {
+      vBC = new Vector()
+      vBC.record(&cells.object(i).soma.v(0.5))
+    }
+    if (gid==iAAC) {
+      vAAC = new Vector()
+      vAAC.record(&cells.object(i).soma.v(0.5))
+    }
+    if (gid==iBSC) {
+      vBSC = new Vector()
+      vBSC.record(&cells.object(i).soma.v(0.5))
+    }
+    if (gid==iOLM) {
+      vOLM = new Vector()
+      vOLM.record(&cells.object(i).soma.v(0.5))
+    }
+  }
+}
+
+vrecord()
+
+
+////////////////////////////
+// Simulation control
+////////////////////////////
+
+strdef fstem
+fstem = "Results/HAM_P5R1"
+
+tstop = SIMDUR
+celsius = 34
+
+// Do single parallel run
+proc prun() {
+  pc.barrier()  // wait for all hosts to get to this point
+  {pc.set_maxstep(1)}
+  stdinit()
+  {pc.psolve(tstop)}
+  spikeout()
+  vout()
+}
+
+
+// Do runs for each stored pattern
+proc bpattrun() { local i
+  erasecue()
+  for i=1, NPATT {
+    if (pc.id==0) {print "Cue pattern ", i} // print header once
+    sprint(fstem, "Results/HAM_P5R%", i)
+    {mkcue(FPATT, i, CFRAC, NPATT)}	// cue from stored pattern
+    pc.barrier()  // wait for all hosts to get to this point
+    //{pc.set_maxstep(10)}
+    {pc.set_maxstep(1)}
+    stdinit()
+    {pc.psolve(tstop)}
+    spikeout()
+    erasecue()
+  }  
+}
+
+
+////////////////////////////
+// Report simulation results
+////////////////////////////
+
+objref fo
+strdef fno
+
+proc spikeout() { local i  
+  pc.barrier()  // wait for all hosts to get to this point
+  if (pc.id==0) printf("\ntime\t cell\n")  // print header once
+  for rank=0, pc.nhost-1 {  // host 0 first, then 1, 2, etc.
+    if (rank==pc.id) {
+      sprint(fno,"%s_spt.dat", fstem)
+      fo = new File(fno)
+      //fo.wopen()
+      fo.aopen()
+      for i=0, tvec.size-1 {
+        printf("%g\t %d\n", tvec.x[i], idvec.x[i])
+        fo.printf("%g\t %d\n", tvec.x[i], idvec.x[i])
+      }
+      fo.close()
+    }
+    pc.barrier()  // wait for all hosts to get to this point
+  }
+}
+
+
+proc vout() { local i, j, gid
+  
+  for j=0, cells.count-1 {	// loop over possible target cells
+    gid = gidvec.x[j]	// id of cell
+    if (gid==iPPC) {
+      sprint(fno,"%s_pvsoma.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, pvsoma.size-1 {
+        fo.printf("%g\n", pvsoma.x[i])
+      }
+      fo.close()
+      sprint(fno,"%s_pvsr.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, pvsr.size-1 {
+        fo.printf("%g\n", pvsr.x[i])
+      }
+      fo.close()
+      sprint(fno,"%s_pvslm.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, pvslm.size-1 {
+        fo.printf("%g\n", pvslm.x[i])
+      }
+      fo.close()
+    }
+    if (gid==iNPPC) {
+      sprint(fno,"%s_npvsoma.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, npvsoma.size-1 {
+        fo.printf("%g\n", npvsoma.x[i])
+      }
+      fo.close()
+      sprint(fno,"%s_npvsr.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, npvsr.size-1 {
+        fo.printf("%g\n", npvsr.x[i])
+      }
+      fo.close()
+      sprint(fno,"%s_npvslm.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, npvslm.size-1 {
+        fo.printf("%g\n", npvslm.x[i])
+      }
+      fo.close()
+    }
+    if (gid==iBC) {
+      sprint(fno,"%s_BC.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, vBC.size-1 {
+        fo.printf("%g\n", vBC.x[i])
+      }
+      fo.close()
+    }
+    if (gid==iAAC) {
+      sprint(fno,"%s_AAC.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, vAAC.size-1 {
+        fo.printf("%g\n", vAAC.x[i])
+      }
+      fo.close()
+    }
+    if (gid==iBSC) {
+      sprint(fno,"%s_BSC.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, vBSC.size-1 {
+        fo.printf("%g\n", vBSC.x[i])
+      }
+      fo.close()
+    }
+    if (gid==iOLM) {
+      sprint(fno,"%s_OLM.dat", fstem)
+      fo = new File(fno)
+      fo.wopen()
+      for i=0, vOLM.size-1 {
+        fo.printf("%g\n", vOLM.x[i])
+      }
+      fo.close()
+    }
+  }
+}
+
+
+prun()
+//bpattrun()
+{pc.runworker()}
+{pc.done()}
+quit()
+

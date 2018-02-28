@@ -1,0 +1,166 @@
+// Data from Saraga et al. (2003) paper
+// changed morphology and some channel densities (BPG 12-1-09)
+//   OLM_Cell
+
+begintemplate OLMCell
+public is_art
+public init, topol, basic_shape, subsets, geom, biophys, geom_nseg
+public pre_list, connect2target
+
+public soma, dend1, dend2, axon
+public all
+
+objref pre_list
+
+proc init() {
+  	topol()
+  	subsets()
+//  	geom()
+  	biophys()
+  	geom_nseg()
+  	pre_list = new List()
+  	synapses()
+  
+}
+
+create soma, dend1, dend2, axon
+
+proc topol() { local i
+  	connect dend1(0), soma(1)
+  	connect dend2(0), soma(0)
+  	connect axon(0), soma(1)
+  	basic_shape()
+}
+
+//proc basic_shape() {
+//  	soma {pt3dclear() pt3dadd(0, 0, 0, 10) pt3dadd(15, 0, 0, 10)}
+// 	dend1 {pt3dclear() pt3dadd(15, 0, 0, 3) pt3dadd(90, 0, 0, 3)}
+//  	dend2 {pt3dclear() pt3dadd(0, 0, 0, 3) pt3dadd(-74, 0, 0, 3)}
+//  	axon {pt3dclear() pt3dadd(15, 0, 0, 1.5) pt3dadd(15, 120, 0, 1.5)}
+//}
+
+proc basic_shape() {
+  	soma {pt3dclear() pt3dadd(0, 0, 0, 10) pt3dadd(20, 0, 0, 10)}
+  	dend1 {pt3dclear() pt3dadd(20, 0, 0, 3) pt3dadd(270, 0, 0, 3)}
+  	dend2 {pt3dclear() pt3dadd(0, 0, 0, 3) pt3dadd(-250, 0, 0, 3)}
+  	axon {pt3dclear() pt3dadd(20, 0, 0, 1.5) pt3dadd(20, 150, 0, 1.5)}
+}
+
+//proc geom() {
+//  	forsec all {  }
+//  	soma {  L = 20  diam = 10  }
+//  	dend1 {  L = 250  diam = 3  }
+//  	dend2 {  L = 250  diam = 3  }
+//  	axon {  L = 150  diam = 1.5  }
+//}
+
+
+
+objref all
+proc subsets() { local i
+  	objref all
+  	all = new SectionList()
+    	soma all.append()
+    	dend1 all.append()
+    	dend2 all.append()
+    	axon all.append()
+
+}
+
+
+external lambda_f
+proc geom_nseg() {
+  forsec all { nseg = int((L/(0.1*lambda_f(100))+.9)/2)*2 + 1  }
+}
+
+proc biophys() {
+
+	Rm = 20000
+	//Rm = 1/5e-05		// original
+	
+  	forsec all {
+  		Ra = 150
+    		cm = 1.3
+  	}
+  	soma {
+		insert IA
+		gkAbar_IA = 0.0165
+		insert Ih
+		gkhbar_Ih = 0.0005
+//		gkhbar_Ih = 0.001385
+		insert Ksoma
+		gksoma_Ksoma = 0.0319
+		insert Nasoma
+		gnasoma_Nasoma = 0.0107
+		gl_Nasoma = 1/Rm
+		el_Nasoma = -70  	
+	}
+  
+  	dend1 {
+		insert IA
+    		gkAbar_IA = 0.004
+     		//gkAbar_IA = 0.013
+		//insert Ih
+		//gkhbar_Ih = 0.001385
+		insert Kdend
+		gkdend_Kdend = 2*0.023
+		insert Nadend
+		gnadend_Nadend = 2*0.0117
+		gl_Nadend = 1/Rm
+		el_Nadend = -70
+  	}
+  
+  	dend2 {
+		insert IA
+    		gkAbar_IA = 0.004
+    		//gkAbar_IA = 0.013
+		//insert Ih
+		//gkhbar_Ih = 0.001385
+		insert Kdend
+		gkdend_Kdend = 2*0.023
+		insert Nadend
+		gnadend_Nadend = 2*0.0117
+		gl_Nadend = 1/Rm
+		el_Nadend = -70
+  	}
+  
+  	axon {
+		insert Kaxon
+		gkaxon_Kaxon = 0.05104
+		insert Naaxon
+		gnaaxon_Naaxon = 0.01712
+		gl_Naaxon = 1/Rm
+		el_Naaxon = -70
+
+  	}
+}
+
+obfunc connect2target() { localobj nc //$o1 target point process, optional $o2 returned NetCon
+  	soma nc = new NetCon(&v(1), $o1)
+  	nc.threshold = -10
+  	if (numarg() == 2) { $o2 = nc } // for backward compatibility
+  	return nc
+}
+
+objref syn_
+proc synapses() {
+  	/* E0 */   dend2 syn_ = new Exp2Syn(0.5)  pre_list.append(syn_)		// AMPA		PC
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+  	/* E1 */   dend1 syn_ = new Exp2Syn(0.5)  pre_list.append(syn_)		// AMPA		PC
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+  	/* I2 */   soma syn_ = new Exp2Syn(0.5)  pre_list.append(syn_)		// GABA-A	Septum
+    	syn_.tau1 = 1
+    	syn_.tau2 = 8
+    	syn_.e = -75
+  	/* I3 */   soma syn_ = new Exp2Syn(0.5)  pre_list.append(syn_)		// GABA-B	Septum
+    	syn_.tau1 = 35
+    	syn_.tau2 = 100
+    	syn_.e = -75
+}
+
+func is_art() { return 0 }
+
+endtemplate OLMCell
+

@@ -1,0 +1,391 @@
+// Artificial cells no longer need a default section.
+//Network cell templates
+//   BasketCell
+// Simplified version (BPG 27-9-08)
+//  - geometry and channels from Santhakumar et al 2005
+//  - geometry modified to preserve VCUs different dendrites
+
+begintemplate BasketCell
+public is_art
+public init, topol, basic_shape, subsets, geom, biophys
+public pre_list, connect2target
+
+public soma, radT2, radM2, radt2, lmM2, lmt2, radT1
+public radM1, radt1, lmM1, lmt1, oriT1, oriM1, orit1
+public oriT2, oriM2, orit2
+public all
+
+objref pre_list
+
+proc init() {
+  	topol()
+  	subsets()
+//  	geom()
+  	biophys()
+  	geom_nseg()
+  	pre_list = new List()
+  	synapses()
+}
+
+create soma, radT2, radM2, radt2, lmM2, lmt2, radT1
+create radM1, radt1, lmM1, lmt1, oriT1, oriM1, orit1
+create oriT2, oriM2, orit2
+
+proc topol() { local i
+  	connect radT2(0), soma(1)
+  	connect radM2(0), radT2(1)
+  	connect radt2(0), radM2(1)
+  	connect lmM2(0), radt2(1)
+  	connect lmt2(0), lmM2(1)
+  	connect radT1(0), soma(0)
+  	connect radM1(0), radT1(1)
+  	connect radt1(0), radM1(1)
+  	connect lmM1(0), radt1(1)
+  	connect lmt1(0), lmM1(1)
+  	connect oriT1(0), soma(0)
+  	connect oriM1(0), oriT1(1)
+  	connect orit1(0), oriM1(1)
+  	connect oriT2(0), soma(1)
+  	connect oriM2(0), oriT2(1)
+  	connect orit2(0), oriM2(1)
+  	basic_shape()
+}
+
+//proc basic_shape() {
+//  	soma {pt3dclear() pt3dadd(0, 0, 0, 10) pt3dadd(15, 0, 0, 10)}
+//  	radT2 {pt3dclear() pt3dadd(15, 0, 0, 4) pt3dadd(45, 30, 0, 4)}
+//  	radM2 {pt3dclear() pt3dadd(45, 30, 0, 3) pt3dadd(75, 60, 0, 3)}
+//  	radt2 {pt3dclear() pt3dadd(75, 60, 0, 2) pt3dadd(90, 75, 0, 2)}
+//  	lmM2 {pt3dclear() pt3dadd(90, 75, 0, 1.5) pt3dadd(105, 90, 0, 1.5)}
+//  	lmt2 {pt3dclear() pt3dadd(105, 90, 0, 1) pt3dadd(120, 105, 0, 1)}
+//  	radT1 {pt3dclear() pt3dadd(0, 0, 0, 4) pt3dadd(-14, 15, 0, 4)}
+//  	radM1 {pt3dclear() pt3dadd(-14, 15, 0, 3) pt3dadd(-29, 30, 0, 3)}
+//  	radt1 {pt3dclear() pt3dadd(-29, 30, 0, 2) pt3dadd(-44, 45, 0, 2)}
+//  	lmM1 {pt3dclear() pt3dadd(-44, 45, 0, 1.5) pt3dadd(-59, 60, 0, 1.5)}
+//  	lmt1 {pt3dclear() pt3dadd(-59, 60, 0, 1) pt3dadd(-89, 90, 0, 1)}
+//  	oriT1 {pt3dclear() pt3dadd(0, 0, 0, 2) pt3dadd(-29, -29, 0, 2)}
+//  	oriM1 {pt3dclear() pt3dadd(-29, -29, 0, 1.5) pt3dadd(-59, -59, 0, 1.5)}
+//  	orit1 {pt3dclear() pt3dadd(-59, -59, 0, 1) pt3dadd(-89, -89, 0, 1)}
+//  	oriT2 {pt3dclear() pt3dadd(15, 0, 0, 2) pt3dadd(45, -29, 0, 2)}
+//  	oriM2 {pt3dclear() pt3dadd(45, -29, 0, 1.5) pt3dadd(75, -59, 0, 1.5)}
+//  	orit2 {pt3dclear() pt3dadd(75, -59, 0, 1) pt3dadd(105, -89, 0, 1)}
+//}
+
+proc basic_shape() {
+  	soma {pt3dclear() pt3dadd(0, 0, 0, 10) pt3dadd(20, 0, 0, 10)}
+  	radT2 {pt3dclear() pt3dadd(20, 0, 0, 4) pt3dadd(90.7, 70.7, 0, 4)}
+  	radM2 {pt3dclear() pt3dadd(90.7, 70.7, 0, 3) pt3dadd(161.4, 141.4, 0, 3)}
+  	radt2 {pt3dclear() pt3dadd(161.4, 141.4, 0, 2) pt3dadd(302.8, 282.8, 0, 2)}
+  	lmM2 {pt3dclear() pt3dadd(302.8, 282.8, 0, 1.5) pt3dadd(373.5, 353.5, 0, 1.5)}
+  	lmt2 {pt3dclear() pt3dadd(373.5, 353.5, 0, 1) pt3dadd(444.2, 424.2, 0, 1)}
+  	radT1 {pt3dclear() pt3dadd(0, 0, 0, 4) pt3dadd(-69.7, 70.7, 0, 4)}
+  	radM1 {pt3dclear() pt3dadd(-69.7, 70.7, 0, 3) pt3dadd(-140.4, 141.4, 0, 3)}
+  	radt1 {pt3dclear() pt3dadd(-140.4, 141.4, 0, 2) pt3dadd(-281.8, 282.8, 0, 2)}
+  	lmM1 {pt3dclear() pt3dadd(-281.8, 282.8, 0, 1.5) pt3dadd(-352.5, 353.5, 0, 1.5)}
+  	lmt1 {pt3dclear() pt3dadd(-352.5, 353.5, 0, 1) pt3dadd(-423.2, 424.2, 0, 1)}
+  	oriT1 {pt3dclear() pt3dadd(0, 0, 0, 2) pt3dadd(-69.7, -69.7, 0, 2)}
+  	oriM1 {pt3dclear() pt3dadd(-69.7, -69.7, 0, 1.5) pt3dadd(-140.4, -140.4, 0, 1.5)}
+  	orit1 {pt3dclear() pt3dadd(-140.4, -140.4, 0, 1) pt3dadd(-211.1, -211.1, 0, 1)}
+  	oriT2 {pt3dclear() pt3dadd(20, 0, 0, 2) pt3dadd(90.7, -69.7, 0, 2)}
+  	oriM2 {pt3dclear() pt3dadd(90.7, -69.7, 0, 1.5) pt3dadd(161.4, -140.4, 0, 1.5)}
+  	orit2 {pt3dclear() pt3dadd(161.4, -140.4, 0, 1) pt3dadd(232.1, -211.1, 0, 1)}
+}
+
+//proc geom() {
+//  	forsec all {  }
+//  	soma {  L = 20  diam = 10  }
+//  	radT2 {  L = 100  diam = 4  } 
+//  	radM2 {  L = 100  diam = 3  } 
+//  	radt2 {  L = 200  diam = 2  } 
+//  	lmM2 {  L = 100  diam = 1.5  } 
+//  	lmt2 {  L = 100  diam = 1  } 
+//  	radT1 {  L = 100  diam = 4  } 
+//  	radM1 {  L = 100  diam = 3  } 
+//  	radt1 {  L = 200  diam = 2  } 
+//  	lmM1 {  L = 100  diam = 1.5  } 
+//  	lmt1 {  L = 100  diam = 1  } 
+//  	oriT1 {  L = 100  diam = 2  } 
+//  	oriM1 {  L = 100  diam = 1.5  } 
+//  	orit1 {  L = 100  diam = 1  } 
+//  	oriT2 {  L = 100  diam = 2  } 
+//  	oriM2 {  L = 100  diam = 1.5  } 
+//  	orit2 {  L = 100  diam = 1  } 
+//}
+
+
+
+
+objref all
+proc subsets() { local i
+  	objref all
+  	all = new SectionList()
+    	soma all.append()
+    	radT2 all.append()
+    	radM2 all.append()
+    	radt2 all.append()
+    	lmM2 all.append()
+    	lmt2 all.append()
+    	radT1 all.append()
+    	radM1 all.append()
+    	radt1 all.append()
+    	lmM1 all.append()
+    	lmt1 all.append()
+    	oriT1 all.append()
+    	oriM1 all.append()
+    	orit1 all.append()
+    	oriT2 all.append()
+    	oriM2 all.append()
+    	orit2 all.append()
+
+}
+
+
+external lambda_f
+proc geom_nseg() {
+  	forsec all { nseg = int((L/(0.1*lambda_f(100))+.9)/2)*2 + 1  }
+}
+
+proc biophys() {
+
+	gna = 0.2
+
+	soma {
+		insert ichan2  		
+		gnatbar_ichan2 = gna  		// 0.12 //original 0.030 to .055 
+		gkfbar_ichan2 = 0.013  		//original 0.015
+		gl_ichan2 = 0.00018
+		cm=1.4
+	} 
+
+	lmt1 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.5  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	lmt2 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.5  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	lmM1 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.45  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	lmM2 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.45  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+	
+	radt1 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.4  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	radt2 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.4  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	radM1 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.3  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	radM2 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.3  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	radT1 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.2  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	radT2 {
+		insert ichan2
+		gnatbar_ichan2 = gna		//0.2  	//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}			
+
+	oriT1 {
+		insert ichan2
+		gnatbar_ichan2 = gna  		//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	oriT2 {
+		insert ichan2
+		gnatbar_ichan2 = gna  		//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	oriM1 {
+		insert ichan2
+		gnatbar_ichan2 = gna  		//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+
+	oriM2 {
+		insert ichan2
+		gnatbar_ichan2 = gna  		//original 0.015
+		gkfbar_ichan2 = 0.013
+		gl_ichan2 = 0.00018
+		cm=1.4
+	}		
+	
+	orit1 {
+		insert ichan2
+		gnatbar_ichan2 = gna  		// Sodium conductance (original 0.015)
+		gkfbar_ichan2 = 0.013		// Delayed K+ rectifier (fast)
+		gl_ichan2 = 0.00018		// Leak conductance
+		cm=1.4
+	}		
+
+	orit2 {
+		insert ichan2
+		gnatbar_ichan2 = gna  		// Sodium conductance (original 0.015)
+		gkfbar_ichan2 = 0.013		// Delayed K+ rectifier (fast)
+		gl_ichan2 = 0.00018		// Leak conductance
+		cm=1.4
+	}		
+
+	forsec all {
+		insert ccanl
+		catau_ccanl = 10		// Time constant for decay of intracellular Ca2+
+		caiinf_ccanl = 5.e-6		// Steady-state intracellular Ca2+ concentration
+		
+		insert borgka
+		gkabar_borgka = 0.00015		// A-type K+ conductance
+		
+		insert nca  			// N-type Ca2+ conductance
+		gncabar_nca = 0.0008   		// check to modify- original 0.004
+		
+		insert lca 
+		glcabar_lca = 0.005		// L-type Ca2+ conductance
+		
+		insert gskch
+		gskbar_gskch = 0.000002		// Ca2+-dependent K (SK) conductance
+		
+		insert mykca
+		gkbar = 0.0002			// Ca2+ and Voltage-dependent K+ (BK) conductance
+
+//		Ra = 10.3			// 31.3 +/- 10.9
+		Ra = 100			// 31.3 +/- 10.9
+		enat = 55
+		ekf = -90
+		ek = -90
+		elca = 130
+		esk = -90
+		el_ichan2 = -60			//-60.06
+		cao_ccanl = 2
+	
+	} 					// make catau slower70e-3 	cao=2 cai=50.e-6
+
+}
+
+obfunc connect2target() { localobj nc //$o1 target point process, optional $o2 returned NetCon
+  	soma nc = new NetCon(&v(1), $o1)
+  	nc.threshold = -10
+  	if (numarg() == 2) { $o2 = nc } // for backward compatibility
+  	return nc
+}
+
+objref syn_
+proc synapses() {
+  	/* E0 */   lmM1 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		EC
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* E1 */   lmM2 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		EC
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* E2 */   radM1 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		CA3 Shaffer collateral
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* E3 */   radM2 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		CA3 Shaffer collateral
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* E4 */   radT1 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		CA3 Shaffer collateral
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* E5 */   radT2 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		CA3 Shaffer collateral
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* E6 */   oriT1 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		PC
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* E7 */   oriT2 syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// AMPA		PC
+    	syn_.tau1 = 0.5
+    	syn_.tau2 = 3
+    	syn_.e = 0
+  	/* I8 */   soma syn_ = new MyExp2Syn(0.5)  pre_list.append(syn_)	// GABA-A	Neighboring basket cell
+    	syn_.tau1 = 1
+    	syn_.tau2 = 8
+    	syn_.e = -75
+  	/* I9 */   soma syn_ = new MyExp2Syn(0.6)  pre_list.append(syn_)	// GABA-A	Bistratified cell
+    	syn_.tau1 = 1
+    	syn_.tau2 = 8
+    	syn_.e = -75
+  	/* I10 */   oriT1 syn_ = new MyExp2Syn(0.6)  pre_list.append(syn_)	// GABA-A	Septum
+    	syn_.tau1 = 1
+    	syn_.tau2 = 8
+    	syn_.e = -75
+  	/* I11 */   oriT2 syn_ = new MyExp2Syn(0.6)  pre_list.append(syn_)	// GABA-A	Septum
+    	syn_.tau1 = 1
+    	syn_.tau2 = 8
+    	syn_.e = -75
+  	/* I12 */   oriT1 syn_ = new MyExp2Syn(0.6)  pre_list.append(syn_)	// GABA-B	Septum
+    	syn_.tau1 = 35
+    	syn_.tau2 = 100
+    	syn_.e = -75
+  	/* I13 */   oriT2 syn_ = new MyExp2Syn(0.6)  pre_list.append(syn_)	// GABA-B	Septum
+    	syn_.tau1 = 35
+    	syn_.tau2 = 100
+    	syn_.e = -75
+}
+
+func is_art() { return 0 }
+
+endtemplate BasketCell
