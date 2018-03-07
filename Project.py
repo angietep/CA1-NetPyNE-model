@@ -438,7 +438,7 @@ for i in range(len(postsynList)):
 #SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
 		
 simConfig.verbose=1
-simConfig.duration = 1
+simConfig.duration = 700
 #simConfig.analysis['plot2Dnet'] = True 
 simConfig.recordStim = True
 
