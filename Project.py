@@ -22,14 +22,14 @@ simConfig = specs.SimConfig()
 
 PATTi=0 #pattern to be read
 
-nPYR=1
-nCA3=1
-nEC=1 #must be equal to the active pyr cells in the pattern
-nSEP=1
-
+#Amount of cells in the network
+nPYR=100
+nCA3=100
+nEC=20 #must be equal to the active pyr cells in the pattern
+nSEP=10
 nOLM=1
 nBS=1
-nB=1
+nB=2
 nAA=1
 
 STARTDEL = 50.	# msecs
@@ -55,31 +55,31 @@ netParams.popParams['SEP']={'cellModel': 'BurstStim2', 'numCells': nSEP, 'interv
 'burstint':2.*THETA/3.,'burstlen':THETA/3.,'xRange':[1000, 1500], 'yRange':[100, 150], 'zRange':[0, 100]}
 
 #Due to 40% noise in the interspike intervals,
-#the 10 spike trains in the septal population were asynchronous.
+#the 10 spike trains in the septal population are asynchronous.
 
 
 #############################################
-####		IMPORT CELL PARAMETERS		#####
+####		IMPORT CELL PARAMETERS  #####
 #############################################
 netParams.importCellParams(label='PYRcell', conds={'cellType': 'PYRcell', 'cellModel': 'PYR_model'}, \
-fileName='pyramidal_cell_14Vb.hoc', cellName='PyramidalCell', importSynMechs=True)
+fileName='pyramidal_cell_14Vb.hoc', cellName='PyramidalCell', importSynMechs=False)
 
 netParams.importCellParams(label='OLMcell', conds={'cellType': 'OLMcell', 'cellModel': 'OLM_model'}, \
-fileName='olm_cell2.hoc', cellName='OLMCell', importSynMechs=True)
+fileName='olm_cell2.hoc', cellName='OLMCell', importSynMechs=False)
 #netParams.cellParams['OLMcell'].globals.Rm=20000.
 
 netParams.importCellParams(label='BScell', conds={'cellType': 'BScell', 'cellModel': 'BS_model'}, \
-fileName='bistratified_cell13S.hoc', cellName='BistratifiedCell', importSynMechs=True)
+fileName='bistratified_cell13S.hoc', cellName='BistratifiedCell', importSynMechs=False)
 
 netParams.importCellParams(label='Bcell', conds={'cellType': 'Bcell', 'cellModel': 'B_model'}, \
-fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=True)
+fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=False)
 
 netParams.importCellParams(label='AAcell', conds={'cellType': 'AAcell', 'cellModel': 'AA_model'}, \
-fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=True)
+fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=False)
 
 
 #############################################
-####		NETWORK CONNECTIONS			#####
+####		NETWORK CONNECTIONS	#####
 #############################################
 
 
@@ -116,13 +116,6 @@ delays={'PYRcell2PYRcell': 1., 'PYRcell2AAcell':1., 'PYRcell2Bcell':1., 'PYRcell
 #### DESCRIPTION OF SYNAPTIC MECHANISMS	#####
 #############################################
 
-#netParams.synMechParams
-####MyExp2Syn_0 == GABA-A  ==? Exp2Syn_1 == {tau2: 8.0, tau1: 1.0, e: -75.0}
-####MyExp2Syn_1 == AMPA ==? Exp2Syn_2 == {tau2: 3.0, tau1: 0.5, e: 0.0}
-####MyExp2Syn_2 == GABA-B ==? Exp2Syn_0 == {tau2: 100.0, tau1: 35.0, e: -75.0}
-####NMDA_3 == NMDA
-
-###THE EXP2SYN MECHS ARE USED FOR OLM CONNECTIONS ONLY
 
 ###STDP configuration
 STDPDFAC = 0.	# depression factor
@@ -138,8 +131,22 @@ STDPLEN = THETA/2.	# STDP burst (storage) length
 ####MyExp2Syn_0 == GABA-A  ==? Exp2Syn_1 == {tau2: 8.0, tau1: 1.0, e: -75.0}
 #netParams.synMechParams['MyExp2Syn_0']={'mod':'MyExp2Syn', 'tau2': 8.0, 'tau1': 1.0, 'e': -75.0}
 
-netParams.synMechParams['STDPE2']={'mod':'STDPE2', 'wmax': CHWGT, 'wmin':CLWGT,'d': STDPDFAC, 'p' : STDPPFAC, 'gscale': AMPASUPP, 'thresh': STDPTHRESH, \
+netParams.synMechParams['STDP']={'mod':'STDPE2', 'wmax': CHWGT, 'wmin':CLWGT,'d': STDPDFAC, 'p' : STDPPFAC, 'gscale': AMPASUPP, 'thresh': STDPTHRESH, \
 'gbdel': STDPSTART, 'gbint': STDPINT, 'gblen': STDPLEN}
+netParams.synMechParams['GABAA']={'mod':'MyExp2Syn', 'tau1':1.0, 'tau2':8.0, 'e':-75.0}
+netParams.synMechParams['GABAB']={'mod':'MyExp2Syn', 'tau1':35.0, 'tau2':100.0, 'e':-75.0}
+netParams.synMechParams['AMPA']={'mod':'MyExp2Syn', 'tau1':0.5, 'tau2':3.0, 'e':0.0}
+netParams.synMechParams['NMDA']={'mod':'NMDA', 'tcon': 2.3, 'tcoff': 100.0, 'enmda': 0.0, 'gNMDAmax': 1.0, 'tauD': 800.0, 'tauF': 800.0, 'util': 0.3}
+}
+
+#netParams.synMechParams
+####MyExp2Syn_0 == GABA-A  ==? Exp2Syn_1 == {tau2: 8.0, tau1: 1.0, e: -75.0}
+####MyExp2Syn_1 == AMPA ==? Exp2Syn_2 == {tau2: 3.0, tau1: 0.5, e: 0.0}
+####MyExp2Syn_2 == GABA-B ==? Exp2Syn_0 == {tau2: 100.0, tau1: 35.0, e: -75.0}
+####NMDA_3 == NMDA
+
+###THE EXP2SYN MECHS ARE USED FOR OLM CONNECTIONS ONLY
+
 
 ###################################################
 
@@ -157,7 +164,7 @@ for i in range(len(postsynList)):
 		'postConds': {'pop': postsynList[i]},
 		'sec': postsynDict[postsynList[i]],
 		'synsPerConn':len(postsynDict[postsynList[i]]),
-		'synMech': 'MyExp2Syn_1',   #AMPA                   
+		'synMech': 'AMPA',                   
 		'weight': weights[k],                  
 		'delay': delays[k],
 		'threshold': -10.0 }
@@ -166,6 +173,7 @@ for i in range(len(postsynList)):
 #	if postsynList[i]=='OLM':
 #		netParams.connParams['PYR->OLM']['synMech'] = 'Exp2Syn_1'
 #FOR THE CONNECTIONS TO OLM CELLS THEY USE A DIFFERENT SYNAPSE MODEL
+	
 	
 #######################
 ##presyn == AA CHECKED
@@ -176,11 +184,11 @@ netParams.connParams['AA->PYR'] = {
         'postConds': {'pop': 'PYR'},
         'sec': 'axon',
 		'loc': 0.1,
-        'synMech': 'MyExp2Syn_0',   #'GABA-A'                   
+        'synMech': 'GABAA',                   
         'weight': weights['AAcell2PYRcell'],                  
         'delay': delays['AAcell2PYRcell'],
 		'threshold': -10.0  }                             
-			
+
 #######################
 ##presyn == B CHECKED
 #######################
@@ -193,7 +201,7 @@ for i in range(len(postsynList)):
 			'preConds': {'pop': 'B'},
 			'postConds': {'pop': postsynList[i]},
 			'sec': 'soma',
-			'synMech': 'MyExp2Syn_0',   #GABA-A                  
+			'synMech': 'GABAA',   #GABA-A                  
 			'weight': weights[k],                  
 			'delay': delays[k],
 			'threshold': -10.0 }
@@ -213,7 +221,7 @@ netParams.connParams['BS->B'] = {
 	'preConds': {'pop': 'BS'},
 	'postConds': {'pop': 'B'},
 	'sec': 'soma',
-	'synMech': 'MyExp2Syn_0',   #GABA-A
+	'synMech': 'GABAA',
 	'loc':0.6,
 	'weight': weights['BScell2Bcell'],
 	'delay': delays['BScell2Bcell'],
@@ -226,12 +234,12 @@ netParams.connParams['BS->PYR'] = {
 		'sec': 'radTmed',
 		'synsPerConn':7,
 		'loc':[[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2],[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2]],
-		'synMech': ['MyExp2Syn_0','MyExp2Syn_2'],  #GABA-A,GABA-B
+		'synMech': ['GABAA','GABAB'],
 		'weight': [weights['BScell2PYRcell'], weights['BScell2PYR_GABABcell']],          
 		'delay': [delays['BScell2PYRcell'],delays['BScell2PYR_GABABcell']],
 		'threshold': -10.0}
-					
-
+				
+	
 #######################
 ##presyn == OLM  CHECKED
 #######################
@@ -240,7 +248,7 @@ netParams.connParams['OLM->PYR'] = {
 		'preConds': {'pop': 'OLM'},
 		'postConds': {'pop': 'PYR'},	
 		'sec': ['lm_thick1','lm_thick2'],
-		'synMech': ['MyExp2Syn_0','MyExp2Syn_2'],  #GABA-A,GABA-B
+		'synMech': ['GABAA','GABAB'],  #GABA-A,GABA-B
 		'weight': [weights['OLMcell2PYRcell'], weights['OLMcell2PYR_GABABcell']],          
 		'delay': [delays['OLMcell2PYRcell'],delays['OLMcell2PYR_GABABcell']],
 		'synsPerConn':2,
@@ -274,7 +282,7 @@ netParams.connParams['EC->PYR'] = {
 		'postConds': {'pop': 'PYR'}, 
 		'connList':lista_EC2PYR,
 		'sec': ['lm_thick1','lm_thick2'],
-		'synMech': 'MyExp2Syn_1',		#AMPA
+		'synMech': 'AMPA',
 		'loc':0.5,
 		'weight': ECWGT,          
 		'delay': ECDEL,
@@ -290,7 +298,7 @@ netParams.connParams['EC->IN'] = {
 		'preConds': {'pop': 'EC'},
 		'postConds': {'pop': ['B','AA']},	
 		'sec': ['lmM1','lmM2'],
-		'synMech': 'MyExp2Syn_1',  #AMPA
+		'synMech': 'AMPA',
 		'weight': EIWGT,          
 		'delay': EIDEL,
 		'synsPerConn':2,
@@ -347,7 +355,7 @@ for i in range(len(postsynList)):
 		'connList':connections[postsynList[i]],
 		'sec': postsynDict[postsynList[i]],
 		'synsPerConn':len(postsynDict[postsynList[i]]),
-		'synMech': 'MyExp2Syn_1',   #AMPA                   
+		'synMech': 'AMPA',                   
 		'weight': EIWGT,
 		'delay': EIDEL,
 		'loc':0.5,
@@ -358,8 +366,8 @@ netParams.connParams['CA3_highW->PYR'] = {
 		'postConds': {'pop': 'PYR'}, 
 		'connList':lista_CA3highW,
 		'sec': 'radTmed',
-#		'synMech': 'MyExp2Syn_1',		#AMPA
-		'synMech': 'STDPE2',			#STDP
+#		'synMech': 'AMPA',
+		'synMech': 'STDP',
 		'loc':0.5,
 		'weight': CHWGT,          
 		'delay': CDEL,
@@ -370,8 +378,8 @@ netParams.connParams['CA3_lowW->PYR'] = {
 		'postConds': {'pop': 'PYR'},
 		'connList':lista_CA3lowW,
 		'sec': 'radTmed',
-#		'synMech': 'MyExp2Syn_1',		#AMPA
-		'synMech': 'STDPE2', 			#STDP
+#		'synMech': 'AMPA',
+		'synMech': 'STDP',
 		'loc':0.5,
 		'weight': CLWGT,          
 		'delay': CDEL,
@@ -382,7 +390,7 @@ netParams.connParams['CA3_NMDA->PYR'] = {
 		'postConds': {'pop': 'PYR'},
 		'sec': 'radTmed',
 		'connList':lista_CA3highW+lista_CA3lowW,
-		'synMech': 'NMDA_3',	#NMDA
+		'synMech': 'NMDA',
 		'loc':0.5,
 		'weight': CNWGT,          
 		'delay': CDEL,
@@ -404,7 +412,7 @@ for i in range(len(postsynList)):
 		'postConds': {'pop': postsynList[i]},
 		'sec': postsynDict[postsynList[i]],
 		'loc':0.6,
-		'synMech': ['MyExp2Syn_0'], #,'MyExp2Syn_2'],  #GABA-A, GABA-B
+		'synMech': ['GABAA'], #,'MyExp2Syn_2'],  #GABA-A, GABA-B
 		'synsPerConn':len(postsynDict[postsynList[i]]),		
 		'weight': w_SEP[postsynList[i]],                  
 		'delay': SEPDEL,
@@ -430,7 +438,7 @@ for i in range(len(postsynList)):
 #SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
 		
 simConfig.verbose=1
-simConfig.duration = 1
+simConfig.duration = 700
 #simConfig.analysis['plot2Dnet'] = True 
 simConfig.recordStim = True
 
