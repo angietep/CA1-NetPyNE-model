@@ -32,6 +32,8 @@ nBS=1
 nB=2
 nAA=1
 
+
+
 STARTDEL = 50.	# msecs
 THETA = 250.	 # msecs (4 Hz)
 GAMMA = 25.	 # msecs (40 Hz)
@@ -62,20 +64,20 @@ netParams.popParams['SEP']={'cellModel': 'BurstStim2', 'numCells': nSEP, 'interv
 ####		IMPORT CELL PARAMETERS  #####
 #############################################
 netParams.importCellParams(label='PYRcell', conds={'cellType': 'PYRcell', 'cellModel': 'PYR_model'}, \
-fileName='pyramidal_cell_14Vb.hoc', cellName='PyramidalCell', importSynMechs=False)
+fileName='pyramidal_cell_14Vb.hoc', cellName='PyramidalCell', importSynMechs=True)
 
 netParams.importCellParams(label='OLMcell', conds={'cellType': 'OLMcell', 'cellModel': 'OLM_model'}, \
-fileName='olm_cell2.hoc', cellName='OLMCell', importSynMechs=False)
+fileName='olm_cell2.hoc', cellName='OLMCell', importSynMechs=True)
 #netParams.cellParams['OLMcell'].globals.Rm=20000.
 
 netParams.importCellParams(label='BScell', conds={'cellType': 'BScell', 'cellModel': 'BS_model'}, \
-fileName='bistratified_cell13S.hoc', cellName='BistratifiedCell', importSynMechs=False)
+fileName='bistratified_cell13S.hoc', cellName='BistratifiedCell', importSynMechs=True)
 
 netParams.importCellParams(label='Bcell', conds={'cellType': 'Bcell', 'cellModel': 'B_model'}, \
-fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=False)
+fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=True)
 
 netParams.importCellParams(label='AAcell', conds={'cellType': 'AAcell', 'cellModel': 'AA_model'}, \
-fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=False)
+fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=True)
 
 
 #############################################
@@ -137,7 +139,7 @@ netParams.synMechParams['GABAA']={'mod':'MyExp2Syn', 'tau1':1.0, 'tau2':8.0, 'e'
 netParams.synMechParams['GABAB']={'mod':'MyExp2Syn', 'tau1':35.0, 'tau2':100.0, 'e':-75.0}
 netParams.synMechParams['AMPA']={'mod':'MyExp2Syn', 'tau1':0.5, 'tau2':3.0, 'e':0.0}
 netParams.synMechParams['NMDA']={'mod':'NMDA', 'tcon': 2.3, 'tcoff': 100.0, 'enmda': 0.0, 'gNMDAmax': 1.0, 'tauD': 800.0, 'tauF': 800.0, 'util': 0.3}
-}
+
 
 #netParams.synMechParams
 ####MyExp2Syn_0 == GABA-A  ==? Exp2Syn_1 == {tau2: 8.0, tau1: 1.0, e: -75.0}
