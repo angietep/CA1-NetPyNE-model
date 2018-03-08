@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 netParams = specs.NetParams()
-simConfig = specs.SimConfig() 
+simConfig = specs.SimConfig()
 
 # In [7]: import json
 # In [8]: print(json.dumps(netParams.cellParams,indent=4))
@@ -48,7 +48,7 @@ netParams.popParams['B'] = {'cellType': 'Bcell', 'numCells': nB, 'cellModel': 'B
 netParams.popParams['AA'] = {'cellType': 'AAcell', 'numCells': nAA, 'cellModel': 'AA_model', 'xRange':[0, 0], 'yRange':[0, 100], 'zRange':[0, 100]}
 
 
-#'cellModel': 'RegnStim' ##they use this other model (not NetStim) in their EC and CA3 cells. 
+#'cellModel': 'RegnStim' ##they use this other model (not NetStim) in their EC and CA3 cells.
 netParams.popParams['EC']={'cellModel': 'RegnStim', 'numCells': nEC, 'number': 1000, 'interval': GAMMA,'start': STARTDEL, 'noise': 0.2,\
 'xRange':[0, 500], 'yRange':[100, 150], 'zRange':[0, 100] }
 netParams.popParams['CA3']={'cellModel': 'RegnStim', 'numCells': nCA3,  'number': 1000, 'interval': GAMMA,'start': STARTDEL+ECCA3DEL, 'noise': 0.2,\
@@ -64,20 +64,20 @@ netParams.popParams['SEP']={'cellModel': 'BurstStim2', 'numCells': nSEP, 'interv
 ####		IMPORT CELL PARAMETERS  #####
 #############################################
 netParams.importCellParams(label='PYRcell', conds={'cellType': 'PYRcell', 'cellModel': 'PYR_model'}, \
-fileName='pyramidal_cell_14Vb.hoc', cellName='PyramidalCell', importSynMechs=True)
+fileName='pyramidal_cell_14Vb.hoc', cellName='PyramidalCell', importSynMechs=False)
 
 netParams.importCellParams(label='OLMcell', conds={'cellType': 'OLMcell', 'cellModel': 'OLM_model'}, \
-fileName='olm_cell2.hoc', cellName='OLMCell', importSynMechs=True)
+fileName='olm_cell2.hoc', cellName='OLMCell', importSynMechs=False)
 #netParams.cellParams['OLMcell'].globals.Rm=20000.
 
 netParams.importCellParams(label='BScell', conds={'cellType': 'BScell', 'cellModel': 'BS_model'}, \
-fileName='bistratified_cell13S.hoc', cellName='BistratifiedCell', importSynMechs=True)
+fileName='bistratified_cell13S.hoc', cellName='BistratifiedCell', importSynMechs=False)
 
 netParams.importCellParams(label='Bcell', conds={'cellType': 'Bcell', 'cellModel': 'B_model'}, \
-fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=True)
+fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=False)
 
 netParams.importCellParams(label='AAcell', conds={'cellType': 'AAcell', 'cellModel': 'AA_model'}, \
-fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=True)
+fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=False)
 
 
 #############################################
@@ -106,7 +106,7 @@ EIDEL = 1.	# delay (msecs)
 # // Septal inhibition
 SEPWGT = 0.02	# SEP weight to BCs and AACs
 SEPWGTL = 0.0002	# SEP weight to BSCs and OLMs
-SEPDEL = 1.	# SEP delay		
+SEPDEL = 1.	# SEP delay
 
 delays={'PYRcell2PYRcell': 1., 'PYRcell2AAcell':1., 'PYRcell2Bcell':1., 'PYRcell2BScell':1.,'PYRcell2OLMcell': 1., \
 'AAcell2PYRcell': 1., \
@@ -140,6 +140,10 @@ netParams.synMechParams['GABAB']={'mod':'MyExp2Syn', 'tau1':35.0, 'tau2':100.0, 
 netParams.synMechParams['AMPA']={'mod':'MyExp2Syn', 'tau1':0.5, 'tau2':3.0, 'e':0.0}
 netParams.synMechParams['NMDA']={'mod':'NMDA', 'tcon': 2.3, 'tcoff': 100.0, 'enmda': 0.0, 'gNMDAmax': 1.0, 'tauD': 800.0, 'tauF': 800.0, 'util': 0.3}
 
+netParams.synMechParams['OLM_GABAA']={'mod':'Exp2Syn', 'tau1':1.0, 'tau2':8.0, 'e':-75.0}
+netParams.synMechParams['OLM_GABAB']={'mod':'Exp2Syn', 'tau1':35.0, 'tau2':100.0, 'e':-75.0}
+netParams.synMechParams['OLM_AMPA']={'mod':'Exp2Syn', 'tau1':0.5, 'tau2':3.0, 'e':0.0}
+
 
 #netParams.synMechParams
 ####MyExp2Syn_0 == GABA-A  ==? Exp2Syn_1 == {tau2: 8.0, tau1: 1.0, e: -75.0}
@@ -166,17 +170,17 @@ for i in range(len(postsynList)):
 		'postConds': {'pop': postsynList[i]},
 		'sec': postsynDict[postsynList[i]],
 		'synsPerConn':len(postsynDict[postsynList[i]]),
-		'synMech': 'AMPA',                   
-		'weight': weights[k],                  
+		'synMech': 'AMPA',
+		'weight': weights[k],
 		'delay': delays[k],
 		'threshold': -10.0 }
-	if postsynList[i]=='PYR': 
+	if postsynList[i]=='PYR':
 		netParams.connParams['PYR->PYR']['convergence'] = 1. # PC_PC = 1  // # of connections received by each PC from other PCs (excit)
-#	if postsynList[i]=='OLM':
-#		netParams.connParams['PYR->OLM']['synMech'] = 'Exp2Syn_1'
+	if postsynList[i]=='OLM':
+		netParams.connParams['PYR->OLM']['synMech'] = 'OLM_AMPA'
 #FOR THE CONNECTIONS TO OLM CELLS THEY USE A DIFFERENT SYNAPSE MODEL
-	
-	
+
+
 #######################
 ##presyn == AA CHECKED
 #######################
@@ -186,25 +190,25 @@ netParams.connParams['AA->PYR'] = {
         'postConds': {'pop': 'PYR'},
         'sec': 'axon',
 		'loc': 0.1,
-        'synMech': 'GABAA',                   
-        'weight': weights['AAcell2PYRcell'],                  
+        'synMech': 'GABAA',
+        'weight': weights['AAcell2PYRcell'],
         'delay': delays['AAcell2PYRcell'],
-		'threshold': -10.0  }                             
+		'threshold': -10.0  }
 
 #######################
 ##presyn == B CHECKED
 #######################
-		
+
 postsynList=['PYR','B','BS']		##B->AA not connected
-		
+
 for i in range(len(postsynList)):
 	k='Bcell2'+postsynList[i]+'cell'
 	netParams.connParams['B->'+postsynList[i]] = {
 			'preConds': {'pop': 'B'},
 			'postConds': {'pop': postsynList[i]},
 			'sec': 'soma',
-			'synMech': 'GABAA',   #GABA-A                  
-			'weight': weights[k],                  
+			'synMech': 'GABAA',   #GABA-A
+			'weight': weights[k],
 			'delay': delays[k],
 			'threshold': -10.0 }
 	if postsynList[i]=='BS': netParams.connParams['B->BS']['loc'] = 0.6
@@ -212,12 +216,12 @@ for i in range(len(postsynList)):
 ##WITH THIS LINE IT DOESNT CREATE THE B->B CONNECTION
 ##	elif postsynList[i]=='B': netParams.connParams['B->B']['convergence'] = 1. # BC_BC = 1  // # of connections received by each BC from other BCs (inhib)
 
-			
+
 #######################
 ##presyn == BS  CHECKED
 #######################
 
-##BS->AA & BS->BS not connected	
+##BS->AA & BS->BS not connected
 
 netParams.connParams['BS->B'] = {
 	'preConds': {'pop': 'BS'},
@@ -227,9 +231,9 @@ netParams.connParams['BS->B'] = {
 	'loc':0.6,
 	'weight': weights['BScell2Bcell'],
 	'delay': delays['BScell2Bcell'],
-	'threshold': -10.0 } 		
+	'threshold': -10.0 }
 
-		
+
 netParams.connParams['BS->PYR'] = {
 		'preConds': {'pop': 'BS'},
 		'postConds': {'pop': 'PYR'},
@@ -237,21 +241,21 @@ netParams.connParams['BS->PYR'] = {
 		'synsPerConn':7,
 		'loc':[[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2],[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2]],
 		'synMech': ['GABAA','GABAB'],
-		'weight': [weights['BScell2PYRcell'], weights['BScell2PYR_GABABcell']],          
+		'weight': [weights['BScell2PYRcell'], weights['BScell2PYR_GABABcell']],
 		'delay': [delays['BScell2PYRcell'],delays['BScell2PYR_GABABcell']],
 		'threshold': -10.0}
-				
-	
+
+
 #######################
 ##presyn == OLM  CHECKED
 #######################
-		
+
 netParams.connParams['OLM->PYR'] = {
 		'preConds': {'pop': 'OLM'},
-		'postConds': {'pop': 'PYR'},	
+		'postConds': {'pop': 'PYR'},
 		'sec': ['lm_thick1','lm_thick2'],
 		'synMech': ['GABAA','GABAB'],  #GABA-A,GABA-B
-		'weight': [weights['OLMcell2PYRcell'], weights['OLMcell2PYR_GABABcell']],          
+		'weight': [weights['OLMcell2PYRcell'], weights['OLMcell2PYR_GABABcell']],
 		'delay': [delays['OLMcell2PYRcell'],delays['OLMcell2PYR_GABABcell']],
 		'synsPerConn':2,
 		'threshold': -10.0}
@@ -259,10 +263,10 @@ netParams.connParams['OLM->PYR'] = {
 
 #############################################
 ####		STIMULATION - INPUTS		#####
-#############################################		
+#############################################
 
-		
-#####################################		
+
+#####################################
 #####EC input to active pyramidal cells
 #####################################
 
@@ -275,18 +279,18 @@ lista_EC2PYR=[] #to check which pyr cells are active in the pattern
 ##each EC cell will stimulate every active pyr cell in the pattern
 for i in range(nEC):
 	for j in range(nPYR):
-		if PATTS[PATTi][j]:	
+		if PATTS[PATTi][j]:
 			lista_EC2PYR.append([i,j])
-	
+
 
 netParams.connParams['EC->PYR'] = {
 		'preConds': {'pop': 'EC'},
-		'postConds': {'pop': 'PYR'}, 
+		'postConds': {'pop': 'PYR'},
 		'connList':lista_EC2PYR,
 		'sec': ['lm_thick1','lm_thick2'],
 		'synMech': 'AMPA',
 		'loc':0.5,
-		'weight': ECWGT,          
+		'weight': ECWGT,
 		'delay': ECDEL,
 		'synsPerConn':2,
 		'threshold': 10.0}
@@ -298,28 +302,28 @@ netParams.connParams['EC->PYR'] = {
 
 netParams.connParams['EC->IN'] = {
 		'preConds': {'pop': 'EC'},
-		'postConds': {'pop': ['B','AA']},	
+		'postConds': {'pop': ['B','AA']},
 		'sec': ['lmM1','lmM2'],
 		'synMech': 'AMPA',
-		'weight': EIWGT,          
+		'weight': EIWGT,
 		'delay': EIDEL,
 		'synsPerConn':2,
 		'threshold': -10.0
 	}
-				
-###################		
+
+###################
 ####CA3 EXCITATION
-#####################		
+#####################
 
 FCONN = "Weights/wgtsN100S20P5.dat"		#weights matrix generated with matlab file
 #WGTCONN = np.transpose(np.loadtxt(fname=FCONN, dtype='int16')) #each column has the weights for one pyramidal cell
 WGTCONN = (np.loadtxt(fname=FCONN, dtype='int16')) #each column has the weights for one pyramidal cell
 
-#################	
+#################
 ####CA3 -> INHIBITORY CELLS
 ##################
 
-lista_CA3active=[] 
+lista_CA3active=[]
 ###connect CA3 input to all pyramidal cells but with different weights according to the WGTCONN[i][j] value
 lista_CA3highW=[]
 lista_CA3lowW=[]
@@ -330,10 +334,10 @@ for i in range(nCA3):
 
 for i in lista_CA3active:  ##ONLY CONNECTIONS FROM ACTIVE CA3 CELLS IN THE PATTERN
 	for j in range(nPYR):
-			if WGTCONN[i][j]: 
-				lista_CA3highW.append([i,j]) 
+			if WGTCONN[i][j]:
+				lista_CA3highW.append([i,j])
 			else: lista_CA3lowW.append([i,j])
-	
+
 postsynList=['AA','B','BS']
 postsynDict={'AA': ['radM1','radM2','radT1', 'radT2'], 'B':['radM1','radM2','radT1', 'radT2'], 'BS':['radM1','radM2','radT1', 'radT2']}
 
@@ -346,7 +350,7 @@ for j in postsynList:
 	list=[]
 	connections[j]= list
 	for i in range(cellnums[j]):
-		for k in lista_CA3active: list.append([k,i])		
+		for k in lista_CA3active: list.append([k,i])
 
 
 for i in range(len(postsynList)):
@@ -357,24 +361,24 @@ for i in range(len(postsynList)):
 		'connList':connections[postsynList[i]],
 		'sec': postsynDict[postsynList[i]],
 		'synsPerConn':len(postsynDict[postsynList[i]]),
-		'synMech': 'AMPA',                   
+		'synMech': 'AMPA',
 		'weight': EIWGT,
 		'delay': EIDEL,
 		'loc':0.5,
-		'threshold': -10.0 } 		
-		
+		'threshold': -10.0 }
+
 netParams.connParams['CA3_highW->PYR'] = {
 		'preConds': {'pop': 'CA3'},
-		'postConds': {'pop': 'PYR'}, 
+		'postConds': {'pop': 'PYR'},
 		'connList':lista_CA3highW,
 		'sec': 'radTmed',
 #		'synMech': 'AMPA',
 		'synMech': 'STDP',
 		'loc':0.5,
-		'weight': CHWGT,          
+		'weight': CHWGT,
 		'delay': CDEL,
 		'threshold': 10.0}
-		
+
 netParams.connParams['CA3_lowW->PYR'] = {
 		'preConds': {'pop': 'CA3'},
 		'postConds': {'pop': 'PYR'},
@@ -383,10 +387,10 @@ netParams.connParams['CA3_lowW->PYR'] = {
 #		'synMech': 'AMPA',
 		'synMech': 'STDP',
 		'loc':0.5,
-		'weight': CLWGT,          
+		'weight': CLWGT,
 		'delay': CDEL,
 		'threshold': 10.0}
-		
+
 netParams.connParams['CA3_NMDA->PYR'] = {
 		'preConds': {'pop': 'CA3'},
 		'postConds': {'pop': 'PYR'},
@@ -394,15 +398,15 @@ netParams.connParams['CA3_NMDA->PYR'] = {
 		'connList':lista_CA3highW+lista_CA3lowW,
 		'synMech': 'NMDA',
 		'loc':0.5,
-		'weight': CNWGT,          
+		'weight': CNWGT,
 		'delay': CDEL,
 		'threshold': 10.0}
-			
+
 
 #######################
 ## Septal inhibition
 #######################
-		
+
 postsynList=['AA','B','BS','OLM']
 postsynDict={'AA': ['oriT1','oriT2'], 'B':['oriT1','oriT2'], 'BS':['oriT1','oriT2'], 'OLM':['soma']}
 w_SEP={'AA': SEPWGT, 'B':SEPWGT, 'BS':SEPWGTL, 'OLM':SEPWGTL}
@@ -415,14 +419,14 @@ for i in range(len(postsynList)):
 		'sec': postsynDict[postsynList[i]],
 		'loc':0.6,
 		'synMech': ['GABAA'], #,'MyExp2Syn_2'],  #GABA-A, GABA-B
-		'synsPerConn':len(postsynDict[postsynList[i]]),		
-		'weight': w_SEP[postsynList[i]],                  
+		'synsPerConn':len(postsynDict[postsynList[i]]),
+		'weight': w_SEP[postsynList[i]],
 		'delay': SEPDEL,
 		'threshold': -10.0}
-	if postsynList[i]=='OLM': 
+	if postsynList[i]=='OLM':
 		netParams.connParams['SEP->OLM']['loc'] = 0.5
-	#	netParams.connParams['SEP->OLM']['synMech'] = ['Exp2Syn_0'] 
-	###	FOR THE CONNECTIONS TO OLM CELLS THEY USE A DIFFERENT SYNAPSE MODEL. I DON'T KNOW WHAT IS THE DIFFERENCE	
+		netParams.connParams['SEP->OLM']['synMech'] = ['OLM_GABAA']
+	###	FOR THE CONNECTIONS TO OLM CELLS THEY USE A DIFFERENT SYNAPSE MODEL. I DON'T KNOW WHAT IS THE DIFFERENCE
 	# elif postsynList[i]=='AA':
 		# netParams.connParams['SEP->AA']['loc'] = 0.6
 	# elif postsynList[i]=='B':
@@ -430,18 +434,18 @@ for i in range(len(postsynList)):
 	# elif postsynList[i]=='BS':
 		# netParams.connParams['SEP->BS']['loc'] = 0.6
 
- 
- 
+
+
 #############################################
 ####		SIMULATION PARAMETERS		#####
-#############################################		
-		
+#############################################
+
 
 #SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
-		
+
 simConfig.verbose=1
-simConfig.duration = 700
-#simConfig.analysis['plot2Dnet'] = True 
+simConfig.duration = 1
+#simConfig.analysis['plot2Dnet'] = True
 simConfig.recordStim = True
 
 simConfig.hParams.celsius=34.
