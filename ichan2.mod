@@ -91,7 +91,7 @@ INITIAL {
       ns = nsinf
 	
 	VERBATIM
-	return 0;
+	//return 0;
 	ENDVERBATIM
 }
 
@@ -103,7 +103,7 @@ PROCEDURE states() {	:Computes state variables m, h, and n
         nf = nf + nfexp*(nfinf-nf)
         ns = ns + nsexp*(nsinf-ns)
         VERBATIM
-        return 0;
+        //return 0;
         ENDVERBATIM
 }
  

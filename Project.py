@@ -84,7 +84,6 @@ fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=False)
 ####		NETWORK CONNECTIONS	#####
 #############################################
 
-
 weights={'PYRcell2PYRcell': 0.001, 'PYRcell2AAcell':0.0005, 'PYRcell2Bcell':0.0005, 'PYRcell2BScell':0.0005,'PYRcell2OLMcell': 0.00005, \
 'AAcell2PYRcell': 0.04,\
 'Bcell2PYRcell': 0.02, 'Bcell2Bcell': 0.001, 'Bcell2BScell': 0.02,\
@@ -427,11 +426,11 @@ for i in range(len(postsynList)):
 #SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
 
 simConfig.verbose=1
-simConfig.duration = 1
+simConfig.duration = 1e3
 simConfig.recordStim = True
 simConfig.recordStep = 1             # Step size in ms to save data (e.g. V traces, LFP, etc)
 
-simConfig.hParams.celsius=34.
+simConfig.hParams['celsius'] = 34.
 
 simConfig.dt = 0.05                 # Internal integration timestep to use
 simConfig.recordTraces = {'V_soma':{'sec':'soma','loc':0.5,'var':'v'}, 'V_lmT':{'sec':'lm_thick1','loc':0.5,'var':'v'}}  # Dict with traces to record
@@ -443,7 +442,7 @@ simConfig.saveDataInclude=['simData']
 #simConfig.saveMat=True
 
 sim.createSimulateAnalyze(netParams, simConfig)
-sim.saveData()
+#sim.saveData()
 
 #sim.create()
 #sim.analysis.plot2Dnet(include = ['AA', ('EC',[0,1,2]),('PYR',[0,1,2]), ('CA3',[0,1,2])])
