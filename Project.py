@@ -91,33 +91,34 @@ weights={'PYRcell2PYRcell': 0.001, 'PYRcell2AAcell':0.0005, 'PYRcell2Bcell':0.00
 'BScell2PYRcell': 0.002, 'BScell2PYR_GABABcell': 0.0004, 'BScell2Bcell': 0.01, \
 'OLMcell2PYRcell': 0.04, 'OLMcell2PYR_GABABcell': 0.0004,'OLMcell2Bcell': 0.01, }
 
-# Cue (CA3) excitation
-CHWGT = 0.0015	#// cue weight
-CLWGT = 0.0005	#// unlearnt weight (usually 0)
-CNWGT = 0.0005	#// excitatory weights (NMDA)
-CDEL = 1.	#// cue delay
-
-ECWGT = 0.0	# EC weight to PCs
-#ECWGT = 0.001	# EC weight to PCs
-ECDEL = 1.	# EC delay
-EIWGT = 0.00015	# excitatory weights to INs
-EIDEL = 1.	# delay (msecs)
-
-# // Septal inhibition
-SEPWGT = 0.02	# SEP weight to BCs and AACs
-SEPWGTL = 0.0002	# SEP weight to BSCs and OLMs
-SEPDEL = 1.	# SEP delay
-
 delays={'PYRcell2PYRcell': 1., 'PYRcell2AAcell':1., 'PYRcell2Bcell':1., 'PYRcell2BScell':1.,'PYRcell2OLMcell': 1., \
 'AAcell2PYRcell': 1., \
 'Bcell2PYRcell': 1., 'Bcell2Bcell': 1., 'Bcell2BScell': 1., \
 'BScell2PYRcell': 1., 'BScell2PYR_GABABcell': 1., 'BScell2Bcell': 1., \
 'OLMcell2PYRcell': 1., 'OLMcell2PYR_GABABcell': 1.,'OLMcell2Bcell': 1. }
 
+# Cue (CA3) excitation
+CHWGT = 0.0015	#// cue weight
+CLWGT = 0.0005	#// unlearnt weight (usually 0)
+CNWGT = 0.0005	#// excitatory weights (NMDA)
+CDEL = 1.	#// cue delay
+
+#EC excitation
+ECWGT = 0.0	# EC weight to PCs
+#ECWGT = 0.001	# EC weight to PCs
+ECDEL = 1.	# EC delay
+EIWGT = 0.00015	# excitatory weights to INs
+EIDEL = 1.	# delay (msecs)
+
+# Septal inhibition
+SEPWGT = 0.02	# SEP weight to BCs and AACs
+SEPWGTL = 0.0002	# SEP weight to BSCs and OLMs
+SEPDEL = 1.	# SEP delay
+
+
 #############################################
 #### DESCRIPTION OF SYNAPTIC MECHANISMS	#####
 #############################################
-
 
 ###STDP configuration
 STDPDFAC = 0.	# depression factor
@@ -129,9 +130,6 @@ STDPTHRESH = -55.	# voltage threshold for STDP
 STDPSTART = STARTDEL+(THETA/2.)	# STDP starts at same time as EC input
 STDPINT = THETA/2.	# STDP interburst (recall) interval
 STDPLEN = THETA/2.	# STDP burst (storage) length
-
-####MyExp2Syn_0 == GABA-A  ==? Exp2Syn_1 == {tau2: 8.0, tau1: 1.0, e: -75.0}
-#netParams.synMechParams['MyExp2Syn_0']={'mod':'MyExp2Syn', 'tau2': 8.0, 'tau1': 1.0, 'e': -75.0}
 
 netParams.synMechParams['STDP']={'mod':'STDPE2', 'wmax': CHWGT, 'wmin':CLWGT,'d': STDPDFAC, 'p' : STDPPFAC, 'gscale': AMPASUPP, 'thresh': STDPTHRESH, \
 'gbdel': STDPSTART, 'gbint': STDPINT, 'gblen': STDPLEN}
@@ -150,11 +148,7 @@ netParams.synMechParams['OLM_AMPA']={'mod':'Exp2Syn', 'tau1':0.5, 'tau2':3.0, 'e
 ####MyExp2Syn_1 == AMPA ==? Exp2Syn_2 == {tau2: 3.0, tau1: 0.5, e: 0.0}
 ####MyExp2Syn_2 == GABA-B ==? Exp2Syn_0 == {tau2: 100.0, tau1: 35.0, e: -75.0}
 ####NMDA_3 == NMDA
-
 ###THE EXP2SYN MECHS ARE USED FOR OLM CONNECTIONS ONLY
-
-
-###################################################
 
 #######################
 ##presyn = PYR CHECKED
@@ -270,9 +264,8 @@ netParams.connParams['OLM->PYR'] = {
 #####EC input to active pyramidal cells
 #####################################
 
-FPATT = "Weights/pattsN100S20P5.dat"	#already stored patterns // each column is a pattern. Each line is a CA1 pyramidal cell
+FPATT = "Weights/pattsN100S20P5.dat"	#already stored patterns: each column is a pattern. Each line is a CA1 pyramidal cell
 PATTS = np.transpose(np.loadtxt(fname=FPATT, dtype='int16')) #each column is a pattern - 100 lines (one per pyramidal cell)
-
 
 lista_EC2PYR=[] #to check which pyr cells are active in the pattern
 
@@ -281,7 +274,6 @@ for i in range(nEC):
 	for j in range(nPYR):
 		if PATTS[PATTi][j]:
 			lista_EC2PYR.append([i,j])
-
 
 netParams.connParams['EC->PYR'] = {
 		'preConds': {'pop': 'EC'},
@@ -311,7 +303,7 @@ netParams.connParams['EC->IN'] = {
 		'threshold': -10.0
 	}
 
-###################
+######################
 ####CA3 EXCITATION
 #####################
 
@@ -319,9 +311,9 @@ FCONN = "Weights/wgtsN100S20P5.dat"		#weights matrix generated with matlab file
 #WGTCONN = np.transpose(np.loadtxt(fname=FCONN, dtype='int16')) #each column has the weights for one pyramidal cell
 WGTCONN = (np.loadtxt(fname=FCONN, dtype='int16')) #each column has the weights for one pyramidal cell
 
-#################
+#############################
 ####CA3 -> INHIBITORY CELLS
-##################
+############################
 
 lista_CA3active=[]
 ###connect CA3 input to all pyramidal cells but with different weights according to the WGTCONN[i][j] value
@@ -384,7 +376,6 @@ netParams.connParams['CA3_lowW->PYR'] = {
 		'postConds': {'pop': 'PYR'},
 		'connList':lista_CA3lowW,
 		'sec': 'radTmed',
-#		'synMech': 'AMPA',
 		'synMech': 'STDP',
 		'loc':0.5,
 		'weight': CLWGT,
@@ -427,34 +418,26 @@ for i in range(len(postsynList)):
 		netParams.connParams['SEP->OLM']['loc'] = 0.5
 		netParams.connParams['SEP->OLM']['synMech'] = ['OLM_GABAA']
 	###	FOR THE CONNECTIONS TO OLM CELLS THEY USE A DIFFERENT SYNAPSE MODEL. I DON'T KNOW WHAT IS THE DIFFERENCE
-	# elif postsynList[i]=='AA':
-		# netParams.connParams['SEP->AA']['loc'] = 0.6
-	# elif postsynList[i]=='B':
-		# netParams.connParams['SEP->B']['loc'] = 0.6
-	# elif postsynList[i]=='BS':
-		# netParams.connParams['SEP->BS']['loc'] = 0.6
-
 
 
 #############################################
 ####		SIMULATION PARAMETERS		#####
 #############################################
 
-
 #SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
 
 simConfig.verbose=1
 simConfig.duration = 1
-#simConfig.analysis['plot2Dnet'] = True
 simConfig.recordStim = True
+simConfig.recordStep = 1             # Step size in ms to save data (e.g. V traces, LFP, etc)
 
 simConfig.hParams.celsius=34.
 
 simConfig.dt = 0.05                 # Internal integration timestep to use
 simConfig.recordTraces = {'V_soma':{'sec':'soma','loc':0.5,'var':'v'}, 'V_lmT':{'sec':'lm_thick1','loc':0.5,'var':'v'}}  # Dict with traces to record
-simConfig.recordStep = 1             # Step size in ms to save data (e.g. V traces, LFP, etc)
 #simConfig.analysis['plotTraces'] = {'include': [('PYR',[0,1]),('AA',0),('B',[0,1]),('OLM',0),('BS',0)]}
 simConfig.analysis['plotRaster'] = True   # Plot a raster
+#simConfig.analysis['plot2Dnet'] = True
 simConfig.saveDataInclude=['simData']
 #simConfig.saveJson=True
 #simConfig.saveMat=True
