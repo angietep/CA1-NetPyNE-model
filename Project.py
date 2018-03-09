@@ -427,13 +427,13 @@ for i in range(len(postsynList)):
 #SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
 
 simConfig.verbose=1
-simConfig.duration = 1
+simConfig.duration = 250
 simConfig.recordStim = True
 simConfig.recordStep = 1             # Step size in ms to save data (e.g. V traces, LFP, etc)
+simConfig.dt = 0.05                 # Internal integration timestep to use
 
 simConfig.hParams.celsius=34.
 
-simConfig.dt = 0.05                 # Internal integration timestep to use
 simConfig.recordTraces = {'V_soma':{'sec':'soma','loc':0.5,'var':'v'}, 'V_lmT':{'sec':'lm_thick1','loc':0.5,'var':'v'}}  # Dict with traces to record
 #simConfig.analysis['plotTraces'] = {'include': [('PYR',[0,1]),('AA',0),('B',[0,1]),('OLM',0),('BS',0)]}
 simConfig.analysis['plotRaster'] = True   # Plot a raster
@@ -450,7 +450,6 @@ sim.saveData()
 #sim.analysis.plotConn()
 #sim.analysis.plotShape(includePost= ['PYR','AA','B','BS','OLM'], showFig=True, includeAxon=True, showSyns=True)
 #sim.analysis.plotRaster(include = ['CA3', lista_CA3active])
-
 
 #sim.allSimData.V_soma.cell_1
 #sim.net.pops.AA.cellGids
