@@ -32,8 +32,6 @@ nBS=1
 nB=2
 nAA=1
 
-
-
 STARTDEL = 50.	# msecs
 THETA = 250.	 # msecs (4 Hz)
 GAMMA = 25.	 # msecs (40 Hz)
@@ -46,7 +44,6 @@ netParams.popParams['OLM'] = {'cellType': 'OLMcell', 'numCells': nOLM, 'cellMode
 netParams.popParams['BS'] = {'cellType': 'BScell', 'numCells': nBS, 'cellModel': 'BS_model', 'xRange':[1600, 1600], 'yRange':[0, 100], 'zRange':[0, 100]}
 netParams.popParams['B'] = {'cellType': 'Bcell', 'numCells': nB, 'cellModel': 'B_model', 'xRange':[900, 900], 'yRange':[0, 100], 'zRange':[0, 100]}
 netParams.popParams['AA'] = {'cellType': 'AAcell', 'numCells': nAA, 'cellModel': 'AA_model', 'xRange':[0, 0], 'yRange':[0, 100], 'zRange':[0, 100]}
-
 
 #'cellModel': 'RegnStim' ##they use this other model (not NetStim) in their EC and CA3 cells.
 netParams.popParams['EC']={'cellModel': 'RegnStim', 'numCells': nEC, 'number': 1000, 'interval': GAMMA,'start': STARTDEL, 'noise': 0.2,\
@@ -79,6 +76,13 @@ fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=False)
 netParams.importCellParams(label='AAcell', conds={'cellType': 'AAcell', 'cellModel': 'AA_model'}, \
 fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=False)
 
+##Setting thresholds
+
+cells=['PYRcell','OLMcell','BScell','Bcell','AAcell']
+
+for i in cells:
+	for sec in netParams.cellParams[i].secs:
+ 		netParams.cellParams[i].secs[sec].threshold = -10.0
 
 #############################################
 ####		NETWORK CONNECTIONS	#####
@@ -166,8 +170,9 @@ for i in range(len(postsynList)):
 		'synsPerConn':len(postsynDict[postsynList[i]]),
 		'synMech': 'AMPA',
 		'weight': weights[k],
-		'delay': delays[k],
-		'threshold': -10.0 }
+		'delay': delays[k]
+		#'threshold': -10.0
+		}
 	if postsynList[i]=='PYR':
 		netParams.connParams['PYR->PYR']['convergence'] = 1. # PC_PC = 1  // # of connections received by each PC from other PCs (excit)
 	if postsynList[i]=='OLM':
@@ -186,8 +191,9 @@ netParams.connParams['AA->PYR'] = {
 		'loc': 0.1,
         'synMech': 'GABAA',
         'weight': weights['AAcell2PYRcell'],
-        'delay': delays['AAcell2PYRcell'],
-		'threshold': -10.0  }
+        'delay': delays['AAcell2PYRcell']
+		#'threshold': -10.0
+		}
 
 #######################
 ##presyn == B CHECKED
@@ -203,8 +209,9 @@ for i in range(len(postsynList)):
 			'sec': 'soma',
 			'synMech': 'GABAA',   #GABA-A
 			'weight': weights[k],
-			'delay': delays[k],
-			'threshold': -10.0 }
+			'delay': delays[k]
+		#	'threshold': -10.0
+			}
 	if postsynList[i]=='BS': netParams.connParams['B->BS']['loc'] = 0.6
 
 ##WITH THIS LINE IT DOESNT CREATE THE B->B CONNECTION
@@ -224,8 +231,9 @@ netParams.connParams['BS->B'] = {
 	'synMech': 'GABAA',
 	'loc':0.6,
 	'weight': weights['BScell2Bcell'],
-	'delay': delays['BScell2Bcell'],
-	'threshold': -10.0 }
+	'delay': delays['BScell2Bcell']
+	#'threshold': -10.0
+	}
 
 
 netParams.connParams['BS->PYR'] = {
@@ -236,8 +244,9 @@ netParams.connParams['BS->PYR'] = {
 		'loc':[[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2],[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2]],
 		'synMech': ['GABAA','GABAB'],
 		'weight': [weights['BScell2PYRcell'], weights['BScell2PYR_GABABcell']],
-		'delay': [delays['BScell2PYRcell'],delays['BScell2PYR_GABABcell']],
-		'threshold': -10.0}
+		'delay': [delays['BScell2PYRcell'],delays['BScell2PYR_GABABcell']]
+#		'threshold': -10.0
+		}
 
 
 #######################
@@ -251,8 +260,9 @@ netParams.connParams['OLM->PYR'] = {
 		'synMech': ['GABAA','GABAB'],  #GABA-A,GABA-B
 		'weight': [weights['OLMcell2PYRcell'], weights['OLMcell2PYR_GABABcell']],
 		'delay': [delays['OLMcell2PYRcell'],delays['OLMcell2PYR_GABABcell']],
-		'synsPerConn':2,
-		'threshold': -10.0}
+		'synsPerConn':21
+		#'threshold': -10.0
+		}
 
 
 #############################################
@@ -284,8 +294,9 @@ netParams.connParams['EC->PYR'] = {
 		'loc':0.5,
 		'weight': ECWGT,
 		'delay': ECDEL,
-		'synsPerConn':2,
-		'threshold': 10.0}
+		'synsPerConn':2
+		#'threshold': 10.0
+		}
 
 
 ##############################
@@ -299,9 +310,9 @@ netParams.connParams['EC->IN'] = {
 		'synMech': 'AMPA',
 		'weight': EIWGT,
 		'delay': EIDEL,
-		'synsPerConn':2,
-		'threshold': -10.0
-	}
+		'synsPerConn':2
+		#'threshold': -10.0
+		}
 
 ######################
 ####CA3 EXCITATION
@@ -356,8 +367,9 @@ for i in range(len(postsynList)):
 		'synMech': 'AMPA',
 		'weight': EIWGT,
 		'delay': EIDEL,
-		'loc':0.5,
-		'threshold': -10.0 }
+		'loc':0.5
+		#'threshold': -10.0
+		}
 
 netParams.connParams['CA3_highW->PYR'] = {
 		'preConds': {'pop': 'CA3'},
@@ -368,8 +380,9 @@ netParams.connParams['CA3_highW->PYR'] = {
 		'synMech': 'STDP',
 		'loc':0.5,
 		'weight': CHWGT,
-		'delay': CDEL,
-		'threshold': 10.0}
+		'delay': CDEL
+		#'threshold': 10.0
+		}
 
 netParams.connParams['CA3_lowW->PYR'] = {
 		'preConds': {'pop': 'CA3'},
@@ -379,8 +392,9 @@ netParams.connParams['CA3_lowW->PYR'] = {
 		'synMech': 'STDP',
 		'loc':0.5,
 		'weight': CLWGT,
-		'delay': CDEL,
-		'threshold': 10.0}
+		'delay': CDEL
+		#'threshold': 10.0
+		}
 
 netParams.connParams['CA3_NMDA->PYR'] = {
 		'preConds': {'pop': 'CA3'},
@@ -390,8 +404,9 @@ netParams.connParams['CA3_NMDA->PYR'] = {
 		'synMech': 'NMDA',
 		'loc':0.5,
 		'weight': CNWGT,
-		'delay': CDEL,
-		'threshold': 10.0}
+		'delay': CDEL
+		#'threshold': 10.0
+		}
 
 
 #######################
@@ -412,8 +427,9 @@ for i in range(len(postsynList)):
 		'synMech': ['GABAA'], #,'MyExp2Syn_2'],  #GABA-A, GABA-B
 		'synsPerConn':len(postsynDict[postsynList[i]]),
 		'weight': w_SEP[postsynList[i]],
-		'delay': SEPDEL,
-		'threshold': -10.0}
+		'delay': SEPDEL
+		#'threshold': -10.0
+		}
 	if postsynList[i]=='OLM':
 		netParams.connParams['SEP->OLM']['loc'] = 0.5
 		netParams.connParams['SEP->OLM']['synMech'] = ['OLM_GABAA']
@@ -427,7 +443,7 @@ for i in range(len(postsynList)):
 #SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
 
 simConfig.verbose=1
-simConfig.duration = 250
+simConfig.duration = 700
 simConfig.recordStim = True
 simConfig.recordStep = 1             # Step size in ms to save data (e.g. V traces, LFP, etc)
 simConfig.dt = 0.05                 # Internal integration timestep to use
