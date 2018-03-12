@@ -442,7 +442,7 @@ simConfig.saveDataInclude=['simData']
 #simConfig.saveJson=True
 #simConfig.saveMat=True
 
-simConfig.recordLFP = [[netParams.sizeX/2, netParams.sizeY*1/4, netParams.sizeZ/2], 
+simConfig.recordLFP = [[netParams.sizeX/2, netParams.sizeY*1/4, netParams.sizeZ/2],
 						[netParams.sizeX/2, netParams.sizeY*2/4, netParams.sizeZ/2],
 						[netParams.sizeX/2, netParams.sizeY*3/4, netParams.sizeZ/2]]
 
