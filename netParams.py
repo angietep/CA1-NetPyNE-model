@@ -4,10 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 netParams = specs.NetParams()
-simConfig = specs.SimConfig()
-
-# In [7]: import json
-# In [8]: print(json.dumps(netParams.cellParams,indent=4))
 
 
 #############################################
@@ -457,82 +453,6 @@ for i in range(len(postsynList)):
 		}
 	if postsynList[i]=='OLM':
 		netParams.connParams['SEP->OLM']['loc'] = 0.5
-		netParams.connParams['SEP->OLM']['synMech'] = ['OLM_GABAA']
-	###	FOR THE CONNECTIONS TO OLM CELLS THEY USE A DIFFERENT SYNAPSE MODEL. I DON'T KNOW WHAT IS THE DIFFERENCE
+		netParams.connParams['SEP->OLM']['synMech'] = ['OLM_GABAA'] # connections to OLM use a differen synapse mode - check what are differences
 
 
-#############################################
-####		SIMULATION PARAMETERS		#####
-#############################################
-
-#SIMDUR = STARTDEL + (THETA*8)	// simulation duration (msecs)
-
-
-simConfig.dt = 0.05                 # Internal integration timestep to use
-simConfig.verbose = 0
-simConfig.duration = 1.0e3
-simConfig.recordStim = True
-simConfig.recordStep = 0.1             # Step size in ms to save data (e.g. V traces, LFP, etc)
-
-simConfig.hParams['celsius'] = 34.
-
-simConfig.recordTraces = {'V_soma':{'sec':'soma','loc':0.5,'var':'v'}, 'V_lmT':{'sec':'lm_thick1','loc':0.5,'var':'v'}}  # Dict with traces to record
-simConfig.analysis['plotTraces'] = {'include': [('Pyramidal',[0,1]),('AA',0),('Basket',[0,1]),('OLM',0),('BS',0)], 'oneFigPer':'trace', 'overlay':1}
-simConfig.analysis['plotRaster'] = True   # Plot a raster
-#simConfig.analysis['plot2Dnet'] = True
-
-simConfig.saveDataInclude=['simData']
-#simConfig.saveJson=True
-#simConfig.saveMat=True
-
-<<<<<<< HEAD
-# simConfig.recordLFP = [[netParams.sizeX/2, netParams.sizeY*1/4, netParams.sizeZ/2], 
-# 						[netParams.sizeX/2, netParams.sizeY*2/4, netParams.sizeZ/2],
-# 						[netParams.sizeX/2, netParams.sizeY*3/4, netParams.sizeZ/2]]
-
-# simConfig.recordLFP = [[x,y,z] for x in range(900, netParams.sizeX, 900) for y in range(40, netParams.sizeY, 40) for z in range(40, netParams.sizeZ, 40)]
-=======
-# simConfig.recordLFP = [[netParams.sizeX/2, netParams.sizeY*1/4, netParams.sizeZ/2],
-# 						[netParams.sizeX/2, netParams.sizeY*2/4, netParams.sizeZ/2],
-# 						[netParams.sizeX/2, netParams.sizeY*3/4, netParams.sizeZ/2]]
-#
-# simConfig.recordLFP = [[x,y,z] for x in range(900, netParams.sizeX, 900) for y in range(40, netParams.sizeY, 40) for z in range(40, netParams.sizeZ, 40)]
-
->>>>>>> 72c089b405ae5046160120d24b91c460ec31b9d8
-
-#sim.createSimulateAnalyze(netParams, simConfig)
-
-<<<<<<< HEAD
-#sim.analysis.plotTraces([('Pyramidal',1),('Basket',0)], saveFig=1, oneFigPer='trace', overlay=0)
-
-# sim.analysis.plotConn(graphType='matrix', saveFig=1)
-# sim.analysis.plotConn(graphType='bar', saveFig=1)
-# sim.analysis.plotSpikeStats(stats = ['rate', 'isicv', 'sync', 'pairsync'], saveFig=1)
-# sim.analysis.plotLFP(NFFT=256*10, noverlap=48*10, nperseg=64*10, saveFig=True)
-# sim.analysis.granger(cells1=['EC'], cells2=['Pyramidal'], label1='EC', label2='Pyramidal')
-=======
-
-sim.analysis.plotConn(graphType='matrix', saveFig=1)
-sim.analysis.plotConn(graphType='bar', saveFig=1)
-sim.analysis.plotSpikeStats(stats = ['rate', 'isicv', 'sync', 'pairsync'], saveFig=1)
-# sim.analysis.plotLFP(NFFT=256*10, noverlap=48*10, nperseg=64*10, saveFig=True)
-sim.analysis.granger(cells1=['EC'], cells2=['PYR'], label1='EC', label2='PYR')
->>>>>>> 72c089b405ae5046160120d24b91c460ec31b9d8
-
-
-#sim.saveData()
-#sim.create()
-#sim.analysis.plot2Dnet(include = ['AA', ('EC',[0,1,2]),('Pyramidal',[0,1,2]), ('CA3',[0,1,2])])
-#sim.analysis.plotConn()
-<<<<<<< HEAD
-#sim.analysis.plotShape(includePost= ['Pyramidal','AA','Basket','BS','OLM'], showFig=True, includeAxon=True, showSyns=True)
-#sim.analysis.plotRaster(include = ['CA3', lista_CA3active])
-=======
-#sim.analysis.plotShape(includePost= ['PYR','AA','B','BS','OLM'], showFig=True, includeAxon=True, showSyns=True)
-#sim.analysis.plotRaster(include = ['SEP','EC','CA3'])
->>>>>>> 72c089b405ae5046160120d24b91c460ec31b9d8
-
-#sim.allSimData.V_soma.cell_1
-#sim.net.pops.AA.cellGids
-
-#plotConn(include = ['allCells'], feature='strength', groupBy= 'pop', figSize=(9,9), showFig=True)
