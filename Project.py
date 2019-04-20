@@ -23,7 +23,7 @@ netParams.sizeZ=100
 PATTi=0 #pattern to be read
 
 #Amount of cells in the network
-nPYR=100
+nPyramidal=100
 nCA3=100
 nEC=20 #must be equal to the active pyr cells in the pattern
 nSEP=10
@@ -39,14 +39,40 @@ ECCA3DEL = 9.	# msecs
 
 
 # Population parameters
-netParams.popParams['PYR'] = {'cellType': 'PYRcell', 'numCells': nPYR, 'cellModel': 'PYR_model', 'xRange':[2100, 2100], 'yRange':[0, 100], 'zRange':[0, 100]}#100cells
-netParams.popParams['OLM'] = {'cellType': 'OLMcell', 'numCells': nOLM, 'cellModel': 'OLM_model', 'xRange':[2700, 2700], 'yRange':[0, 100], 'zRange':[0, 100]}
-netParams.popParams['BS'] = {'cellType': 'BScell', 'numCells': nBS, 'cellModel': 'BS_model', 'xRange':[1600, 1600], 'yRange':[0, 100], 'zRange':[0, 100]}
-netParams.popParams['B'] = {'cellType': 'Bcell', 'numCells': nB, 'cellModel': 'B_model', 'xRange':[900, 900], 'yRange':[0, 100], 'zRange':[0, 100]}
-netParams.popParams['AA'] = {'cellType': 'AAcell', 'numCells': nAA, 'cellModel': 'AA_model', 'xRange':[0, 0], 'yRange':[0, 100], 'zRange':[0, 100]}
+netParams.popParams['Pyramidal'] = {'cellType': 'Pyramidalcell', 
+	'numCells': nPyramidal, 
+	'cellModel': 'Pyramidal_model', 
+	'xRange':[2100, 2100], 
+	'yRange':[0, 100], 
+	'zRange':[0, 100]}#100cells
+netParams.popParams['OLM'] = {'cellType': 
+	'OLMcell', 'numCells': nOLM, 
+	'cellModel': 'OLM_model', 
+	'xRange':[2700, 2700], 
+	'yRange':[0, 100], 
+	'zRange':[0, 100]}
+netParams.popParams['BS'] = {'cellType': 
+	'BScell', 'numCells': nBS, 
+	'cellModel': 'BS_model',
+	 'xRange':[1600, 1600],
+	  'yRange':[0, 100],
+	   'zRange':[0, 100]}
+netParams.popParams['Basket'] = {'cellType':
+ 	'Basketcell', 'numCells': nB, 
+ 	'cellModel': 'B_model', 
+ 	'xRange':[900, 900],
+ 	 'yRange':[0, 100],
+ 	  'zRange':[0, 100]}
+netParams.popParams['AA'] = {'cellType': 
+	'AAcell', 'numCells': nAA, 
+	'cellModel': 'AA_model',
+	 'xRange':[0, 0], 
+	 'yRange':[0, 100], 
+	 'zRange':[0, 100]}
 
 #'cellModel': 'RegnStim' ##they use this other model (not NetStim) in their EC and CA3 cells.
-netParams.popParams['EC']={'cellModel': 'RegnStim', 'numCells': nEC, 'number': 1000, 'interval': GAMMA,'start': STARTDEL, 'noise': 0.2,\
+netParams.popParams['EC']={'cellModel': 
+'RegnStim', 'numCells': nEC, 'number': 1000, 'interval': GAMMA,'start': STARTDEL, 'noise': 0.2,\
 'xRange':[0, 500], 'yRange':[100, 150], 'zRange':[0, 100] }
 netParams.popParams['CA3']={'cellModel': 'RegnStim', 'numCells': nCA3,  'number': 1000, 'interval': GAMMA,'start': STARTDEL+ECCA3DEL, 'noise': 0.2,\
 'xRange':[500, 1000], 'yRange':[100, 150], 'zRange':[0, 100]}
@@ -60,7 +86,7 @@ netParams.popParams['SEP']={'cellModel': 'BurstStim2', 'numCells': nSEP, 'interv
 #############################################
 ####		IMPORT CELL PARAMETERS  #####
 #############################################
-netParams.importCellParams(label='PYRcell', conds={'cellType': 'PYRcell', 'cellModel': 'PYR_model'}, \
+netParams.importCellParams(label='Pyramidalcell', conds={'cellType': 'Pyramidalcell', 'cellModel': 'Pyramidal_model'}, \
 fileName='pyramidal_cell_14Vb.hoc', cellName='PyramidalCell', importSynMechs=False)
 
 netParams.importCellParams(label='OLMcell', conds={'cellType': 'OLMcell', 'cellModel': 'OLM_model'}, \
@@ -70,7 +96,7 @@ fileName='olm_cell2.hoc', cellName='OLMCell', importSynMechs=False)
 netParams.importCellParams(label='BScell', conds={'cellType': 'BScell', 'cellModel': 'BS_model'}, \
 fileName='bistratified_cell13S.hoc', cellName='BistratifiedCell', importSynMechs=False)
 
-netParams.importCellParams(label='Bcell', conds={'cellType': 'Bcell', 'cellModel': 'B_model'}, \
+netParams.importCellParams(label='Basketcell', conds={'cellType': 'Basketcell', 'cellModel': 'B_model'}, \
 fileName='basket_cell17S.hoc', cellName='BasketCell', importSynMechs=False)
 
 netParams.importCellParams(label='AAcell', conds={'cellType': 'AAcell', 'cellModel': 'AA_model'}, \
@@ -78,7 +104,7 @@ fileName='axoaxonic_cell17S.hoc', cellName='AACell', importSynMechs=False)
 
 ##Setting thresholds
 
-cells=['PYRcell','OLMcell','BScell','Bcell','AAcell']
+cells=['Pyramidalcell','OLMcell','BScell','Basketcell','AAcell']
 
 for i in cells:
 	for sec in netParams.cellParams[i].secs:
@@ -88,17 +114,17 @@ for i in cells:
 ####		NETWORK CONNECTIONS	#####
 #############################################
 
-weights={'PYRcell2PYRcell': 0.001, 'PYRcell2AAcell':0.0005, 'PYRcell2Bcell':0.0005, 'PYRcell2BScell':0.0005,'PYRcell2OLMcell': 0.00005, \
-'AAcell2PYRcell': 0.04,\
-'Bcell2PYRcell': 0.02, 'Bcell2Bcell': 0.001, 'Bcell2BScell': 0.02,\
-'BScell2PYRcell': 0.002, 'BScell2PYR_GABABcell': 0.0004, 'BScell2Bcell': 0.01, \
-'OLMcell2PYRcell': 0.04, 'OLMcell2PYR_GABABcell': 0.0004,'OLMcell2Bcell': 0.01, }
+weights={'Pyramidalcell2Pyramidalcell': 0.001, 'Pyramidalcell2AAcell':0.0005, 'Pyramidalcell2Basketcell':0.0005, 'Pyramidalcell2BScell':0.0005,'Pyramidalcell2OLMcell': 0.00005, \
+'AAcell2Pyramidalcell': 0.04,\
+'Basketcell2Pyramidalcell': 0.02, 'Basketcell2Basketcell': 0.001, 'Basketcell2BScell': 0.02,\
+'BScell2Pyramidalcell': 0.002, 'BScell2Pyramidal_GABABasketcell': 0.0004, 'BScell2Basketcell': 0.01, \
+'OLMcell2Pyramidalcell': 0.04, 'OLMcell2Pyramidal_GABABasketcell': 0.0004,'OLMcell2Basketcell': 0.01, }
 
-delays={'PYRcell2PYRcell': 1., 'PYRcell2AAcell':1., 'PYRcell2Bcell':1., 'PYRcell2BScell':1.,'PYRcell2OLMcell': 1., \
-'AAcell2PYRcell': 1., \
-'Bcell2PYRcell': 1., 'Bcell2Bcell': 1., 'Bcell2BScell': 1., \
-'BScell2PYRcell': 1., 'BScell2PYR_GABABcell': 1., 'BScell2Bcell': 1., \
-'OLMcell2PYRcell': 1., 'OLMcell2PYR_GABABcell': 1.,'OLMcell2Bcell': 1. }
+delays={'Pyramidalcell2Pyramidalcell': 1., 'Pyramidalcell2AAcell':1., 'Pyramidalcell2Basketcell':1., 'Pyramidalcell2BScell':1.,'Pyramidalcell2OLMcell': 1., \
+'AAcell2Pyramidalcell': 1., \
+'Basketcell2Pyramidalcell': 1., 'Basketcell2Basketcell': 1., 'Basketcell2BScell': 1., \
+'BScell2Pyramidalcell': 1., 'BScell2Pyramidal_GABABasketcell': 1., 'BScell2Basketcell': 1., \
+'OLMcell2Pyramidalcell': 1., 'OLMcell2Pyramidal_GABABasketcell': 1.,'OLMcell2Basketcell': 1. }
 
 # Cue (CA3) excitation
 CHWGT = 0.0015	#// cue weight
@@ -154,16 +180,16 @@ netParams.synMechParams['OLM_AMPA']={'mod':'Exp2Syn', 'tau1':0.5, 'tau2':3.0, 'e
 ###THE EXP2SYN MECHS ARE USED FOR OLM CONNECTIONS ONLY
 
 #######################
-##presyn = PYR CHECKED
+##presyn = Pyramidal CHECKED
 #######################
 
-postsynList=['PYR','AA','B','BS','OLM']
-postsynDict={'PYR':['radTprox'], 'AA': ['oriT1','oriT2'], 'B':['oriT1','oriT2'], 'BS':['oriT1','oriT2'], 'OLM':['dend1','dend2']}
+postsynList=['Pyramidal','AA','Basket','BS','OLM']
+postsynDict={'Pyramidal':['radTprox'], 'AA': ['oriT1','oriT2'], 'Basket':['oriT1','oriT2'], 'BS':['oriT1','oriT2'], 'OLM':['dend1','dend2']}
 
 for i in range(len(postsynList)):
-	k='PYRcell2'+postsynList[i]+'cell'
-	netParams.connParams['PYR->'+postsynList[i]] = {
-		'preConds': {'pop': 'PYR'},
+	k='Pyramidalcell2'+postsynList[i]+'cell'
+	netParams.connParams['Pyramidal->'+postsynList[i]] = {
+		'preConds': {'pop': 'Pyramidal'},
 		'postConds': {'pop': postsynList[i]},
 		'sec': postsynDict[postsynList[i]],
 		'synsPerConn':len(postsynDict[postsynList[i]]),
@@ -172,10 +198,10 @@ for i in range(len(postsynList)):
 		'delay': delays[k]
 		#'threshold': -10.0
 		}
-	if postsynList[i]=='PYR':
-		netParams.connParams['PYR->PYR']['convergence'] = 1. # PC_PC = 1  // # of connections received by each PC from other PCs (excit)
+	if postsynList[i]=='Pyramidal':
+		netParams.connParams['Pyramidal->Pyramidal']['convergence'] = 1. # PC_PC = 1  // # of connections received by each PC from other PCs (excit)
 	if postsynList[i]=='OLM':
-		netParams.connParams['PYR->OLM']['synMech'] = 'OLM_AMPA'
+		netParams.connParams['Pyramidal->OLM']['synMech'] = 'OLM_AMPA'
 #FOR THE CONNECTIONS TO OLM CELLS THEY USE A DIFFERENT SYNAPSE MODEL
 
 
@@ -183,14 +209,14 @@ for i in range(len(postsynList)):
 ##presyn == AA CHECKED
 #######################
 
-netParams.connParams['AA->PYR'] = {
+netParams.connParams['AA->Pyramidal'] = {
         'preConds': {'pop': 'AA'},
-        'postConds': {'pop': 'PYR'},
+        'postConds': {'pop': 'Pyramidal'},
         'sec': 'axon',
 		'loc': 0.1,
         'synMech': 'GABAA',
-        'weight': weights['AAcell2PYRcell'],
-        'delay': delays['AAcell2PYRcell']
+        'weight': weights['AAcell2Pyramidalcell'],
+        'delay': delays['AAcell2Pyramidalcell']
 		#'threshold': -10.0
 		}
 
@@ -198,12 +224,12 @@ netParams.connParams['AA->PYR'] = {
 ##presyn == B CHECKED
 #######################
 
-postsynList=['PYR','B','BS']		##B->AA not connected
+postsynList=['Pyramidal','Basket','BS']		##B->AA not connected
 
 for i in range(len(postsynList)):
-	k='Bcell2'+postsynList[i]+'cell'
+	k='Basketcell2'+postsynList[i]+'cell'
 	netParams.connParams['B->'+postsynList[i]] = {
-			'preConds': {'pop': 'B'},
+			'preConds': {'pop': 'Basket'},
 			'postConds': {'pop': postsynList[i]},
 			'sec': 'soma',
 			'synMech': 'GABAA',   #GABA-A
@@ -214,7 +240,7 @@ for i in range(len(postsynList)):
 	if postsynList[i]=='BS': netParams.connParams['B->BS']['loc'] = 0.6
 
 ##WITH THIS LINE IT DOESNT CREATE THE B->B CONNECTION
-##	elif postsynList[i]=='B': netParams.connParams['B->B']['convergence'] = 1. # BC_BC = 1  // # of connections received by each BC from other BCs (inhib)
+##	elif postsynList[i]=='Basket': netParams.connParams['B->B']['convergence'] = 1. # BC_BC = 1  // # of connections received by each BC from other BCs (inhib)
 
 
 #######################
@@ -225,25 +251,25 @@ for i in range(len(postsynList)):
 
 netParams.connParams['BS->B'] = {
 	'preConds': {'pop': 'BS'},
-	'postConds': {'pop': 'B'},
+	'postConds': {'pop': 'Basket'},
 	'sec': 'soma',
 	'synMech': 'GABAA',
 	'loc':0.6,
-	'weight': weights['BScell2Bcell'],
-	'delay': delays['BScell2Bcell']
+	'weight': weights['BScell2Basketcell'],
+	'delay': delays['BScell2Basketcell']
 	#'threshold': -10.0
 	}
 
 
-netParams.connParams['BS->PYR'] = {
+netParams.connParams['BS->Pyramidal'] = {
 		'preConds': {'pop': 'BS'},
-		'postConds': {'pop': 'PYR'},
+		'postConds': {'pop': 'Pyramidal'},
 		'sec': 'radTmed',
 		'synsPerConn':7,
 		'loc':[[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2],[0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2]],
 		'synMech': ['GABAA','GABAB'],
-		'weight': [weights['BScell2PYRcell'], weights['BScell2PYR_GABABcell']],
-		'delay': [delays['BScell2PYRcell'],delays['BScell2PYR_GABABcell']]
+		'weight': [weights['BScell2Pyramidalcell'], weights['BScell2Pyramidal_GABABasketcell']],
+		'delay': [delays['BScell2Pyramidalcell'],delays['BScell2Pyramidal_GABABasketcell']]
 #		'threshold': -10.0
 		}
 
@@ -252,13 +278,13 @@ netParams.connParams['BS->PYR'] = {
 ##presyn == OLM  CHECKED
 #######################
 
-netParams.connParams['OLM->PYR'] = {
+netParams.connParams['OLM->Pyramidal'] = {
 		'preConds': {'pop': 'OLM'},
-		'postConds': {'pop': 'PYR'},
+		'postConds': {'pop': 'Pyramidal'},
 		'sec': ['lm_thick1','lm_thick2'],
 		'synMech': ['GABAA','GABAB'],  #GABA-A,GABA-B
-		'weight': [weights['OLMcell2PYRcell'], weights['OLMcell2PYR_GABABcell']],
-		'delay': [delays['OLMcell2PYRcell'],delays['OLMcell2PYR_GABABcell']],
+		'weight': [weights['OLMcell2Pyramidalcell'], weights['OLMcell2Pyramidal_GABABasketcell']],
+		'delay': [delays['OLMcell2Pyramidalcell'],delays['OLMcell2Pyramidal_GABABasketcell']],
 		'synsPerConn':21
 		#'threshold': -10.0
 		}
@@ -276,18 +302,18 @@ netParams.connParams['OLM->PYR'] = {
 FPATT = "Weights/pattsN100S20P5.dat"	#already stored patterns: each column is a pattern. Each line is a CA1 pyramidal cell
 PATTS = np.transpose(np.loadtxt(fname=FPATT, dtype='int16')) #each column is a pattern - 100 lines (one per pyramidal cell)
 
-lista_EC2PYR=[] #to check which pyr cells are active in the pattern
+lista_EC2Pyramidal=[] #to check which pyr cells are active in the pattern
 
 ##each EC cell will stimulate every active pyr cell in the pattern
 for i in range(nEC):
-	for j in range(nPYR):
+	for j in range(nPyramidal):
 		if PATTS[PATTi][j]:
-			lista_EC2PYR.append([i,j])
+			lista_EC2Pyramidal.append([i,j])
 
-netParams.connParams['EC->PYR'] = {
+netParams.connParams['EC->Pyramidal'] = {
 		'preConds': {'pop': 'EC'},
-		'postConds': {'pop': 'PYR'},
-		'connList':lista_EC2PYR,
+		'postConds': {'pop': 'Pyramidal'},
+		'connList':lista_EC2Pyramidal,
 		'sec': ['lm_thick1','lm_thick2'],
 		'synMech': 'AMPA',
 		'loc':0.5,
@@ -304,7 +330,7 @@ netParams.connParams['EC->PYR'] = {
 
 netParams.connParams['EC->IN'] = {
 		'preConds': {'pop': 'EC'},
-		'postConds': {'pop': ['B','AA']},
+		'postConds': {'pop': ['Basket','AA']},
 		'sec': ['lmM1','lmM2'],
 		'synMech': 'AMPA',
 		'weight': EIWGT,
@@ -335,15 +361,15 @@ for i in range(nCA3):
 		lista_CA3active.append(i)
 
 for i in lista_CA3active:  ##ONLY CONNECTIONS FROM ACTIVE CA3 CELLS IN THE PATTERN
-	for j in range(nPYR):
+	for j in range(nPyramidal):
 			if WGTCONN[i][j]:
 				lista_CA3highW.append([i,j])
 			else: lista_CA3lowW.append([i,j])
 
-postsynList=['AA','B','BS']
-postsynDict={'AA': ['radM1','radM2','radT1', 'radT2'], 'B':['radM1','radM2','radT1', 'radT2'], 'BS':['radM1','radM2','radT1', 'radT2']}
+postsynList=['AA','Basket','BS']
+postsynDict={'AA': ['radM1','radM2','radT1', 'radT2'], 'Basket':['radM1','radM2','radT1', 'radT2'], 'BS':['radM1','radM2','radT1', 'radT2']}
 
-cellnums={'B':nB, 'AA': nAA, 'BS': nBS, 'OLM': nOLM}
+cellnums={'Basket':nB, 'AA': nAA, 'BS': nBS, 'OLM': nOLM}
 list=[]
 connections={}
 
@@ -370,9 +396,9 @@ for i in range(len(postsynList)):
 		#'threshold': -10.0
 		}
 
-netParams.connParams['CA3_highW->PYR'] = {
+netParams.connParams['CA3_highW->Pyramidal'] = {
 		'preConds': {'pop': 'CA3'},
-		'postConds': {'pop': 'PYR'},
+		'postConds': {'pop': 'Pyramidal'},
 		'connList':lista_CA3highW,
 		'sec': 'radTmed',
 #		'synMech': 'AMPA',
@@ -383,9 +409,9 @@ netParams.connParams['CA3_highW->PYR'] = {
 		#'threshold': 10.0
 		}
 
-netParams.connParams['CA3_lowW->PYR'] = {
+netParams.connParams['CA3_lowW->Pyramidal'] = {
 		'preConds': {'pop': 'CA3'},
-		'postConds': {'pop': 'PYR'},
+		'postConds': {'pop': 'Pyramidal'},
 		'connList':lista_CA3lowW,
 		'sec': 'radTmed',
 		'synMech': 'STDP',
@@ -395,9 +421,9 @@ netParams.connParams['CA3_lowW->PYR'] = {
 		#'threshold': 10.0
 		}
 
-netParams.connParams['CA3_NMDA->PYR'] = {
+netParams.connParams['CA3_NMDA->Pyramidal'] = {
 		'preConds': {'pop': 'CA3'},
-		'postConds': {'pop': 'PYR'},
+		'postConds': {'pop': 'Pyramidal'},
 		'sec': 'radTmed',
 		'connList':lista_CA3highW+lista_CA3lowW,
 		'synMech': 'NMDA',
@@ -412,9 +438,9 @@ netParams.connParams['CA3_NMDA->PYR'] = {
 ## Septal inhibition
 #######################
 
-postsynList=['AA','B','BS','OLM']
-postsynDict={'AA': ['oriT1','oriT2'], 'B':['oriT1','oriT2'], 'BS':['oriT1','oriT2'], 'OLM':['soma']}
-w_SEP={'AA': SEPWGT, 'B':SEPWGT, 'BS':SEPWGTL, 'OLM':SEPWGTL}
+postsynList=['AA','Basket','BS','OLM']
+postsynDict={'AA': ['oriT1','oriT2'], 'Basket':['oriT1','oriT2'], 'BS':['oriT1','oriT2'], 'OLM':['soma']}
+w_SEP={'AA': SEPWGT, 'Basket':SEPWGT, 'BS':SEPWGTL, 'OLM':SEPWGTL}
 
 ## CHECKED
 for i in range(len(postsynList)):
@@ -451,7 +477,7 @@ simConfig.recordStep = 0.1             # Step size in ms to save data (e.g. V tr
 simConfig.hParams['celsius'] = 34.
 
 simConfig.recordTraces = {'V_soma':{'sec':'soma','loc':0.5,'var':'v'}, 'V_lmT':{'sec':'lm_thick1','loc':0.5,'var':'v'}}  # Dict with traces to record
-simConfig.analysis['plotTraces'] = {'include': [('PYR',[0,1]),('AA',0),('B',[0,1]),('OLM',0),('BS',0)], 'oneFigPer':'trace', 'overlay':1}
+simConfig.analysis['plotTraces'] = {'include': [('Pyramidal',[0,1]),('AA',0),('Basket',[0,1]),('OLM',0),('BS',0)], 'oneFigPer':'trace', 'overlay':1}
 simConfig.analysis['plotRaster'] = True   # Plot a raster
 #simConfig.analysis['plot2Dnet'] = True
 
@@ -459,26 +485,28 @@ simConfig.saveDataInclude=['simData']
 #simConfig.saveJson=True
 #simConfig.saveMat=True
 
-simConfig.recordLFP = [[netParams.sizeX/2, netParams.sizeY*1/4, netParams.sizeZ/2], 
-						[netParams.sizeX/2, netParams.sizeY*2/4, netParams.sizeZ/2],
-						[netParams.sizeX/2, netParams.sizeY*3/4, netParams.sizeZ/2]]
+# simConfig.recordLFP = [[netParams.sizeX/2, netParams.sizeY*1/4, netParams.sizeZ/2], 
+# 						[netParams.sizeX/2, netParams.sizeY*2/4, netParams.sizeZ/2],
+# 						[netParams.sizeX/2, netParams.sizeY*3/4, netParams.sizeZ/2]]
 
-simConfig.recordLFP = [[x,y,z] for x in range(900, netParams.sizeX, 900) for y in range(40, netParams.sizeY, 40) for z in range(40, netParams.sizeZ, 40)]
+# simConfig.recordLFP = [[x,y,z] for x in range(900, netParams.sizeX, 900) for y in range(40, netParams.sizeY, 40) for z in range(40, netParams.sizeZ, 40)]
 
-sim.createSimulateAnalyze(netParams, simConfig)
+#sim.createSimulateAnalyze(netParams, simConfig)
 
-sim.analysis.plotConn(graphType='matrix', saveFig=1)
-sim.analysis.plotConn(graphType='bar', saveFig=1)
-sim.analysis.plotSpikeStats(stats = ['rate', 'isicv', 'sync', 'pairsync'], saveFig=1)
-sim.analysis.plotLFP(NFFT=256*10, noverlap=48*10, nperseg=64*10, saveFig=True)
-sim.analysis.granger(cells1=['EC'], cells2=['PYR'], label1='EC', label2='PYR')
+#sim.analysis.plotTraces([('Pyramidal',1),('Basket',0)], saveFig=1, oneFigPer='trace', overlay=0)
+
+# sim.analysis.plotConn(graphType='matrix', saveFig=1)
+# sim.analysis.plotConn(graphType='bar', saveFig=1)
+# sim.analysis.plotSpikeStats(stats = ['rate', 'isicv', 'sync', 'pairsync'], saveFig=1)
+# sim.analysis.plotLFP(NFFT=256*10, noverlap=48*10, nperseg=64*10, saveFig=True)
+# sim.analysis.granger(cells1=['EC'], cells2=['Pyramidal'], label1='EC', label2='Pyramidal')
 
 
 #sim.saveData()
 #sim.create()
-#sim.analysis.plot2Dnet(include = ['AA', ('EC',[0,1,2]),('PYR',[0,1,2]), ('CA3',[0,1,2])])
+#sim.analysis.plot2Dnet(include = ['AA', ('EC',[0,1,2]),('Pyramidal',[0,1,2]), ('CA3',[0,1,2])])
 #sim.analysis.plotConn()
-#sim.analysis.plotShape(includePost= ['PYR','AA','B','BS','OLM'], showFig=True, includeAxon=True, showSyns=True)
+#sim.analysis.plotShape(includePost= ['Pyramidal','AA','Basket','BS','OLM'], showFig=True, includeAxon=True, showSyns=True)
 #sim.analysis.plotRaster(include = ['CA3', lista_CA3active])
 
 #sim.allSimData.V_soma.cell_1
